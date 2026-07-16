@@ -1,6 +1,6 @@
 // ── Plate Chase service worker ──────────────────────────────────────────────
 // Bump CACHE_VERSION whenever app shell files change so clients pick up the update.
-const CACHE_VERSION = "v1";
+const CACHE_VERSION = "v4";
 const CACHE_NAME = `plate-chase-${CACHE_VERSION}`;
 
 const APP_SHELL = [
