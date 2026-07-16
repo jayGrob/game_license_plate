@@ -26,17 +26,27 @@ body {
 main {
   max-width: 880px;
   margin: 0 auto;
-  padding: 0 14px 40px;
+  padding:
+    0
+    calc(14px + env(safe-area-inset-right, 0px))
+    calc(40px + env(safe-area-inset-bottom, 0px))
+    calc(14px + env(safe-area-inset-left, 0px));
   display: flex;
   flex-direction: column;
   gap: 16px;
 }
 
 /* Top bar */
+/* env(safe-area-inset-*) is 0 on Android/Windows/desktop and only non-zero on
+   iOS when running standalone with viewport-fit=cover — no OS detection needed. */
 .topbar {
   max-width: 880px;
   margin: 0 auto;
-  padding: 18px 14px 14px;
+  padding:
+    calc(18px + env(safe-area-inset-top, 0px))
+    calc(14px + env(safe-area-inset-right, 0px))
+    14px
+    calc(14px + env(safe-area-inset-left, 0px));
   display: flex;
   align-items: center;
   justify-content: space-between;
