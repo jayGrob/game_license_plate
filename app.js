@@ -350,3 +350,10 @@ renderAll();
 renderSoundBtn();
 // keep "trip time" / "ago" labels fresh
 setInterval(() => { renderHero(); }, 30000);
+
+// ── PWA: offline support via service worker ─────────────────────────────────
+if ("serviceWorker" in navigator) {
+  window.addEventListener("load", () => {
+    navigator.serviceWorker.register("sw.js").catch(() => { /* offline support unavailable — game still works online */ });
+  });
+}
