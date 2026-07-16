@@ -1,0 +1,66 @@
+// ── State data ──────────────────────────────────────────────────────────────
+// col/row place each state on the tile map grid (12 cols x 8 rows).
+// bg / fg / ac style the license plate graphic (background, serial text, accent).
+const STATES = [
+  { abbr:"AL", name:"Alabama",        cap:"Montgomery",     pop:"5.1 million",  bird:"Yellowhammer",              year:1819, order:22, region:"South",     col:7,  row:6, bg:"#fdfdf6", fg:"#a31621", ac:"#a31621", slogan:"Heart of Dixie" },
+  { abbr:"AK", name:"Alaska",         cap:"Juneau",         pop:"733,000",      bird:"Willow Ptarmigan",          year:1959, order:49, region:"West",      col:0,  row:0, bg:"#ffd24d", fg:"#1b3d8f", ac:"#1b3d8f", slogan:"The Last Frontier" },
+  { abbr:"AZ", name:"Arizona",        cap:"Phoenix",        pop:"7.4 million",  bird:"Cactus Wren",               year:1912, order:48, region:"West",      col:2,  row:5, bg:"linear-gradient(180deg,#fde3b1,#e08e5e)", fg:"#6b2d5c", ac:"#6b2d5c", slogan:"Grand Canyon State" },
+  { abbr:"AR", name:"Arkansas",       cap:"Little Rock",    pop:"3.1 million",  bird:"Northern Mockingbird",      year:1836, order:25, region:"South",     col:5,  row:5, bg:"#f4f1ea", fg:"#9e1b32", ac:"#9e1b32", slogan:"The Natural State" },
+  { abbr:"CA", name:"California",     cap:"Sacramento",     pop:"39.0 million", bird:"California Quail",          year:1850, order:31, region:"West",      col:1,  row:4, bg:"#ffffff", fg:"#23408e", ac:"#d6453d", slogan:"The Golden State" },
+  { abbr:"CO", name:"Colorado",       cap:"Denver",         pop:"5.9 million",  bird:"Lark Bunting",              year:1876, order:38, region:"West",      col:3,  row:4, bg:"linear-gradient(180deg,#e9f5ec,#8fc7a2)", fg:"#1e4d3a", ac:"#1e4d3a", slogan:"Colorful Colorado" },
+  { abbr:"CT", name:"Connecticut",    cap:"Hartford",       pop:"3.6 million",  bird:"American Robin",            year:1788, order:5,  region:"Northeast", col:11, row:3, bg:"#cfe3f5", fg:"#1a2f5e", ac:"#1a2f5e", slogan:"Constitution State" },
+  { abbr:"DE", name:"Delaware",       cap:"Dover",          pop:"1.0 million",  bird:"Delaware Blue Hen",         year:1787, order:1,  region:"South",     col:10, row:4, bg:"#1b2a5e", fg:"#f2c94c", ac:"#f2c94c", slogan:"The First State" },
+  { abbr:"FL", name:"Florida",        cap:"Tallahassee",    pop:"22.6 million", bird:"Northern Mockingbird",      year:1845, order:27, region:"South",     col:9,  row:7, bg:"linear-gradient(180deg,#ffffff,#ffe9d6)", fg:"#2e7d32", ac:"#e65100", slogan:"Sunshine State" },
+  { abbr:"GA", name:"Georgia",        cap:"Atlanta",        pop:"11.0 million", bird:"Brown Thrasher",            year:1788, order:4,  region:"South",     col:8,  row:6, bg:"linear-gradient(180deg,#fbe4d0,#f6c290)", fg:"#7a3e2f", ac:"#b23a48", slogan:"Peach State" },
+  { abbr:"HI", name:"Hawaii",         cap:"Honolulu",       pop:"1.4 million",  bird:"Nēnē (Hawaiian Goose)",     year:1959, order:50, region:"West",      col:0,  row:7, bg:"linear-gradient(90deg,#ffdfe8,#fff4d6,#dff3ff)", fg:"#b3446c", ac:"#b3446c", slogan:"Aloha State" },
+  { abbr:"ID", name:"Idaho",          cap:"Boise",          pop:"2.0 million",  bird:"Mountain Bluebird",         year:1890, order:43, region:"West",      col:2,  row:2, bg:"#f2f7f0", fg:"#2f6b3a", ac:"#b3202c", slogan:"Famous Potatoes" },
+  { abbr:"IL", name:"Illinois",       cap:"Springfield",    pop:"12.5 million", bird:"Northern Cardinal",         year:1818, order:21, region:"Midwest",   col:6,  row:3, bg:"#eef4fb", fg:"#1f3a93", ac:"#c0392b", slogan:"Land of Lincoln" },
+  { abbr:"IN", name:"Indiana",        cap:"Indianapolis",   pop:"6.9 million",  bird:"Northern Cardinal",         year:1816, order:19, region:"Midwest",   col:7,  row:3, bg:"linear-gradient(180deg,#183a6d,#2c5aa0)", fg:"#f2c94c", ac:"#f2c94c", slogan:"Crossroads of America" },
+  { abbr:"IA", name:"Iowa",           cap:"Des Moines",     pop:"3.2 million",  bird:"Eastern Goldfinch",         year:1846, order:29, region:"Midwest",   col:5,  row:3, bg:"#f7f7f2", fg:"#2b2b2b", ac:"#1f3a93", slogan:"The Hawkeye State" },
+  { abbr:"KS", name:"Kansas",         cap:"Topeka",         pop:"2.9 million",  bird:"Western Meadowlark",        year:1861, order:34, region:"Midwest",   col:4,  row:5, bg:"linear-gradient(180deg,#fdf6e3,#f7d774)", fg:"#23408e", ac:"#23408e", slogan:"The Sunflower State" },
+  { abbr:"KY", name:"Kentucky",       cap:"Frankfort",      pop:"4.5 million",  bird:"Northern Cardinal",         year:1792, order:15, region:"South",     col:6,  row:4, bg:"linear-gradient(180deg,#dfeffa,#bcdcf5)", fg:"#1a3e6e", ac:"#1a3e6e", slogan:"Unbridled Spirit" },
+  { abbr:"LA", name:"Louisiana",      cap:"Baton Rouge",    pop:"4.6 million",  bird:"Brown Pelican",             year:1812, order:18, region:"South",     col:5,  row:6, bg:"#f6f2e7", fg:"#1f4e79", ac:"#b58900", slogan:"Sportsman's Paradise" },
+  { abbr:"ME", name:"Maine",          cap:"Augusta",        pop:"1.4 million",  bird:"Black-capped Chickadee",    year:1820, order:23, region:"Northeast", col:11, row:0, bg:"#e8f1e4", fg:"#204e39", ac:"#204e39", slogan:"Vacationland" },
+  { abbr:"MD", name:"Maryland",       cap:"Annapolis",      pop:"6.2 million",  bird:"Baltimore Oriole",          year:1788, order:7,  region:"South",     col:9,  row:4, bg:"#fdf3d7", fg:"#222222", ac:"#c8102e", slogan:"Old Line State" },
+  { abbr:"MA", name:"Massachusetts",  cap:"Boston",         pop:"7.0 million",  bird:"Black-capped Chickadee",    year:1788, order:6,  region:"Northeast", col:10, row:2, bg:"#ffffff", fg:"#b71c1c", ac:"#1a3e6e", slogan:"The Spirit of America" },
+  { abbr:"MI", name:"Michigan",       cap:"Lansing",        pop:"10.0 million", bird:"American Robin",            year:1837, order:26, region:"Midwest",   col:8,  row:2, bg:"linear-gradient(180deg,#dfeffa,#ffffff)", fg:"#14477d", ac:"#14477d", slogan:"Pure Michigan" },
+  { abbr:"MN", name:"Minnesota",      cap:"St. Paul",       pop:"5.7 million",  bird:"Common Loon",               year:1858, order:32, region:"Midwest",   col:5,  row:2, bg:"linear-gradient(180deg,#e7f4fb,#cfe9f7)", fg:"#1c5d99", ac:"#1c5d99", slogan:"10,000 Lakes" },
+  { abbr:"MS", name:"Mississippi",    cap:"Jackson",        pop:"2.9 million",  bird:"Northern Mockingbird",      year:1817, order:20, region:"South",     col:6,  row:6, bg:"#f6f4ef", fg:"#24425c", ac:"#7a8450", slogan:"The Magnolia State" },
+  { abbr:"MO", name:"Missouri",       cap:"Jefferson City", pop:"6.2 million",  bird:"Eastern Bluebird",          year:1821, order:24, region:"Midwest",   col:5,  row:4, bg:"linear-gradient(180deg,#eef4fb,#dbe7f3)", fg:"#333333", ac:"#1f3a93", slogan:"Show-Me State" },
+  { abbr:"MT", name:"Montana",        cap:"Helena",         pop:"1.1 million",  bird:"Western Meadowlark",        year:1889, order:41, region:"West",      col:3,  row:2, bg:"linear-gradient(180deg,#dbe9f5,#eef6ff)", fg:"#274b69", ac:"#274b69", slogan:"Big Sky Country" },
+  { abbr:"NE", name:"Nebraska",       cap:"Lincoln",        pop:"2.0 million",  bird:"Western Meadowlark",        year:1867, order:37, region:"Midwest",   col:4,  row:4, bg:"linear-gradient(180deg,#fdf8e4,#f3e2a9)", fg:"#8a2b2b", ac:"#8a2b2b", slogan:"The Good Life" },
+  { abbr:"NV", name:"Nevada",         cap:"Carson City",    pop:"3.2 million",  bird:"Mountain Bluebird",         year:1864, order:36, region:"West",      col:2,  row:3, bg:"#dfe6ee", fg:"#16305a", ac:"#8a97a8", slogan:"The Silver State" },
+  { abbr:"NH", name:"New Hampshire",  cap:"Concord",        pop:"1.4 million",  bird:"Purple Finch",              year:1788, order:9,  region:"Northeast", col:11, row:1, bg:"#f4f7f0", fg:"#244f36", ac:"#244f36", slogan:"Live Free or Die" },
+  { abbr:"NJ", name:"New Jersey",     cap:"Trenton",        pop:"9.3 million",  bird:"Eastern Goldfinch",         year:1787, order:3,  region:"Northeast", col:10, row:3, bg:"linear-gradient(180deg,#fdf3d7,#f7e6b0)", fg:"#333333", ac:"#333333", slogan:"Garden State" },
+  { abbr:"NM", name:"New Mexico",     cap:"Santa Fe",       pop:"2.1 million",  bird:"Greater Roadrunner",        year:1912, order:47, region:"West",      col:3,  row:5, bg:"#ffd54d", fg:"#c8102e", ac:"#c8102e", slogan:"Land of Enchantment" },
+  { abbr:"NY", name:"New York",       cap:"Albany",         pop:"19.6 million", bird:"Eastern Bluebird",          year:1788, order:11, region:"Northeast", col:9,  row:2, bg:"#123a75", fg:"#f2b134", ac:"#f2b134", slogan:"Empire State" },
+  { abbr:"NC", name:"North Carolina", cap:"Raleigh",        pop:"10.8 million", bird:"Northern Cardinal",         year:1789, order:12, region:"South",     col:7,  row:5, bg:"#ffffff", fg:"#1a3e6e", ac:"#c8102e", slogan:"First in Flight" },
+  { abbr:"ND", name:"North Dakota",   cap:"Bismarck",       pop:"780,000",      bird:"Western Meadowlark",        year:1889, order:39, region:"Midwest",   col:4,  row:2, bg:"linear-gradient(180deg,#e9f2fa,#f7ecd9)", fg:"#31558a", ac:"#31558a", slogan:"Peace Garden State" },
+  { abbr:"OH", name:"Ohio",           cap:"Columbus",       pop:"11.8 million", bird:"Northern Cardinal",         year:1803, order:17, region:"Midwest",   col:8,  row:3, bg:"#ffffff", fg:"#b31942", ac:"#1a3e6e", slogan:"Birthplace of Aviation" },
+  { abbr:"OK", name:"Oklahoma",       cap:"Oklahoma City",  pop:"4.0 million",  bird:"Scissor-tailed Flycatcher", year:1907, order:46, region:"South",     col:4,  row:6, bg:"#cfe6f2", fg:"#24425c", ac:"#24425c", slogan:"Native America" },
+  { abbr:"OR", name:"Oregon",         cap:"Salem",          pop:"4.2 million",  bird:"Western Meadowlark",        year:1859, order:33, region:"West",      col:1,  row:3, bg:"#f2f6ee", fg:"#2e5d43", ac:"#1c4587", slogan:"Pacific Wonderland" },
+  { abbr:"PA", name:"Pennsylvania",   cap:"Harrisburg",     pop:"13.0 million", bird:"Ruffed Grouse",             year:1787, order:2,  region:"Northeast", col:9,  row:3, bg:"linear-gradient(180deg,#dbe7f3,#fdf3d7)", fg:"#14284b", ac:"#14284b", slogan:"Keystone State" },
+  { abbr:"RI", name:"Rhode Island",   cap:"Providence",     pop:"1.1 million",  bird:"Rhode Island Red",          year:1790, order:13, region:"Northeast", col:11, row:2, bg:"linear-gradient(180deg,#e7f4fb,#ffffff)", fg:"#1c5d99", ac:"#1c5d99", slogan:"Ocean State" },
+  { abbr:"SC", name:"South Carolina", cap:"Columbia",       pop:"5.4 million",  bird:"Carolina Wren",             year:1788, order:8,  region:"South",     col:8,  row:5, bg:"#f4f7f0", fg:"#1f4e5f", ac:"#b58900", slogan:"The Palmetto State" },
+  { abbr:"SD", name:"South Dakota",   cap:"Pierre",         pop:"920,000",      bird:"Ring-necked Pheasant",      year:1889, order:40, region:"Midwest",   col:4,  row:3, bg:"linear-gradient(180deg,#dfeffa,#f7ecd9)", fg:"#31558a", ac:"#31558a", slogan:"Great Faces. Great Places." },
+  { abbr:"TN", name:"Tennessee",      cap:"Nashville",      pop:"7.1 million",  bird:"Northern Mockingbird",      year:1796, order:16, region:"South",     col:6,  row:5, bg:"#12355b", fg:"#ffffff", ac:"#ffffff", slogan:"The Volunteer State" },
+  { abbr:"TX", name:"Texas",          cap:"Austin",         pop:"30.5 million", bird:"Northern Mockingbird",      year:1845, order:28, region:"South",     col:4,  row:7, bg:"#ffffff", fg:"#1a1a1a", ac:"#1a1a1a", slogan:"The Lone Star State" },
+  { abbr:"UT", name:"Utah",           cap:"Salt Lake City", pop:"3.4 million",  bird:"California Gull",           year:1896, order:45, region:"West",      col:2,  row:4, bg:"linear-gradient(180deg,#fde3b1,#e08e5e)", fg:"#6b2d16", ac:"#6b2d16", slogan:"Life Elevated" },
+  { abbr:"VT", name:"Vermont",        cap:"Montpelier",     pop:"647,000",      bird:"Hermit Thrush",             year:1791, order:14, region:"Northeast", col:10, row:1, bg:"#2f7d4f", fg:"#ffffff", ac:"#ffffff", slogan:"Green Mountain State" },
+  { abbr:"VA", name:"Virginia",       cap:"Richmond",       pop:"8.7 million",  bird:"Northern Cardinal",         year:1788, order:10, region:"South",     col:8,  row:4, bg:"#ffffff", fg:"#22303f", ac:"#8a2b2b", slogan:"Virginia is for Lovers" },
+  { abbr:"WA", name:"Washington",     cap:"Olympia",        pop:"7.8 million",  bird:"American Goldfinch",        year:1889, order:42, region:"West",      col:1,  row:2, bg:"linear-gradient(180deg,#e7f4fb,#dfeee4)", fg:"#1a3e6e", ac:"#2e5d43", slogan:"Evergreen State" },
+  { abbr:"WV", name:"West Virginia",  cap:"Charleston",     pop:"1.8 million",  bird:"Northern Cardinal",         year:1863, order:35, region:"South",     col:7,  row:4, bg:"linear-gradient(180deg,#fdf6e3,#ffffff)", fg:"#1a3e6e", ac:"#1a3e6e", slogan:"Wild, Wonderful" },
+  { abbr:"WI", name:"Wisconsin",      cap:"Madison",        pop:"5.9 million",  bird:"American Robin",            year:1848, order:30, region:"Midwest",   col:6,  row:2, bg:"#f7f3e8", fg:"#b3202c", ac:"#b3202c", slogan:"America's Dairyland" },
+  { abbr:"WY", name:"Wyoming",        cap:"Cheyenne",       pop:"584,000",      bird:"Western Meadowlark",        year:1890, order:44, region:"West",      col:3,  row:3, bg:"linear-gradient(180deg,#dbe9f5,#f7ecd9)", fg:"#31558a", ac:"#31558a", slogan:"Forever West" },
+];
+
+const REGIONS = ["West", "Midwest", "South", "Northeast"];
+
+const REGION_COLORS = {
+  West:      "#e07a5f",
+  Midwest:   "#f2cc8f",
+  South:     "#81b29a",
+  Northeast: "#7aa6d6",
+};
+
+const STATE_BY_ABBR = Object.fromEntries(STATES.map(s => [s.abbr, s]));
