@@ -7,9 +7,21 @@ The Great American License Plate Hunt — a road-trip game for the whole family.
 Just open [`index.html`](index.html) in a browser. That's it.
 
 - **Desktop/laptop:** double-click the file.
-- **Phone/tablet:** loose local files are awkward to open on mobile, so host the folder somewhere reachable (e.g. [GitHub Pages](https://pages.github.com/) or [Netlify Drop](https://app.netlify.com/drop) — drag the folder in, get a URL) and open that URL in your phone's browser.
+- **Phone/tablet:** loose local files are awkward to open on mobile, so host the folder somewhere reachable (e.g. [GitHub Pages](https://pages.github.com/) or [Netlify Drop](https://app.netlify.com/drop) — drag the folder in, get a URL) and open that URL in your phone's browser. This also unlocks install-to-home-screen (see below), which requires HTTPS or `localhost` — it won't work over a plain `file://` link.
 
 Progress is saved automatically to the browser's `localStorage` on that device — no server, no sign-in, nothing to lose if you close the tab.
+
+## Install it (PWA)
+
+Plate Chase is an installable Progressive Web App: once it's served over HTTPS (or `localhost`), it can be added to a home screen and works fully offline afterward.
+
+- **iOS Safari:** Share → *Add to Home Screen*
+- **Android Chrome:** menu → *Install app* (or the install banner that appears automatically)
+- **Desktop Chrome/Edge:** install icon in the address bar
+
+After the first visit, a service worker caches the whole app shell, so it keeps working with no signal — handy in the car. Progress still lives in `localStorage`, independent of the cache.
+
+If you change `index.html`, `styles.css`, `app.js`, or `data.js`, bump `CACHE_VERSION` in [`sw.js`](sw.js) so installed devices pick up the update on next launch.
 
 ## How to play
 
@@ -35,10 +47,13 @@ Tapped a state by mistake? Reopen it and use the "oops — remove this find" lin
 Plain HTML, CSS, and JavaScript — no frameworks, no build step, no external assets or CDNs. Everything (data, sound, graphics) is generated in-browser, which keeps it lightweight and lets it run identically on Windows, Mac, iOS, and Android.
 
 ```
-index.html   structure
-styles.css   look & feel
-data.js      state data (capitals, populations, birds, plate colors, map coordinates)
-app.js       game logic, rendering, storage, sound
+index.html     structure
+styles.css     look & feel
+data.js        state data (capitals, populations, birds, plate colors, map coordinates)
+app.js         game logic, rendering, storage, sound, service worker registration
+manifest.json  PWA metadata (name, icons, theme colors, display mode)
+sw.js          service worker — caches the app shell for offline play
+icons/         app icons (regular + maskable, multiple sizes)
 ```
 
 ## Local development
