@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#0f172a">
+<title>Plate Chase — The License Plate Game</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🚗</text></svg>">
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+<header class="topbar">
+  <div class="brand">
+    <span class="brand-car">🚗</span>
+    <div>
+      <h1>Plate Chase</h1>
+      <p class="tagline">The Great American License Plate Hunt</p>
+    </div>
+  </div>
+  <div class="topbar-actions">
+    <button id="btnSound" class="icon-btn" title="Toggle sound">🔊</button>
+    <button id="btnReset" class="icon-btn" title="Start a new trip">🔄</button>
+  </div>
+</header>
+
+<main>
+  <!-- Hero progress -->
+  <section class="hero card">
+    <div class="progress-ring-wrap">
+      <svg class="progress-ring" viewBox="0 0 120 120">
+        <circle class="ring-bg" cx="60" cy="60" r="52"/>
+        <circle id="ringFill" class="ring-fill" cx="60" cy="60" r="52"/>
+      </svg>
+      <div class="ring-label">
+        <span id="pctBig">0%</span>
+        <span class="ring-sub">complete</span>
+      </div>
+    </div>
+    <div class="hero-stats">
+      <div class="hero-stat">
+        <span id="foundCount" class="hero-num">0<small>/50</small></span>
+        <span class="hero-cap">states spotted</span>
+      </div>
+      <div class="hero-stat">
+        <span id="tripTime" class="hero-num">—</span>
+        <span class="hero-cap">trip time</span>
+      </div>
+      <div class="hero-stat">
+        <span id="lastFind" class="hero-num">—</span>
+        <span class="hero-cap">last spotted</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- Map -->
+  <section class="card">
+    <h2 class="card-title">🗺️ The Map <span class="hint">tap a state to see its plate — tap again when you spot it!</span></h2>
+    <div id="map" class="tile-map" role="grid" aria-label="United States map"></div>
+    <div class="legend">
+      <span class="legend-item"><span class="swatch swatch-found"></span>Spotted</span>
+      <span class="legend-item"><span class="swatch swatch-open"></span>Still hunting</span>
+    </div>
+  </section>
+
+  <!-- Stat cards -->
+  <section class="stats-grid">
+    <div class="card stat-card">
+      <span class="stat-icon">⚡</span>
+      <span id="statFastest" class="stat-val">—</span>
+      <span class="stat-cap">fastest back-to-back spot</span>
+    </div>
+    <div class="card stat-card">
+      <span class="stat-icon">⏱️</span>
+      <span id="statPace" class="stat-val">—</span>
+      <span class="stat-cap">average time between finds</span>
+    </div>
+    <div class="card stat-card">
+      <span class="stat-icon">🔥</span>
+      <span id="statBestDay" class="stat-val">—</span>
+      <span class="stat-cap">best day (most finds)</span>
+    </div>
+    <div class="card stat-card">
+      <span class="stat-icon">🏆</span>
+      <span id="statRarest" class="stat-val">—</span>
+      <span class="stat-cap">longest hunt (biggest gap)</span>
+    </div>
+  </section>
+
+  <!-- Region progress -->
+  <section class="card">
+    <h2 class="card-title">🧭 Regions</h2>
+    <div id="regions" class="regions"></div>
+  </section>
+
+  <!-- History -->
+  <section class="card">
+    <h2 class="card-title">📜 Trip Log</h2>
+    <ol id="history" class="history"></ol>
+    <p id="historyEmpty" class="empty-note">No plates spotted yet. Eyes on the road… passengers only! 👀</p>
+  </section>
+
+  <footer class="foot">Everything is saved on this device automatically. Happy hunting!</footer>
+</main>
+
+<!-- State detail modal -->
+<div id="overlay" class="overlay hidden">
+  <div class="modal card" role="dialog" aria-modal="true">
+    <button id="modalClose" class="modal-close" aria-label="Close">✕</button>
+    <div id="modalBody"></div>
+  </div>
+</div>
+
+<div id="confettiLayer" class="confetti-layer" aria-hidden="true"></div>
+
+<script src="data.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
