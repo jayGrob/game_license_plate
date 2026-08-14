@@ -54,6 +54,26 @@ const STATES = [
   { abbr:"WY", name:"Wyoming",        cap:"Cheyenne",       pop:"584,000",      bird:"Western Meadowlark",        year:1890, order:44, region:"West",      col:3,  row:3, bg:"linear-gradient(180deg,#dbe9f5,#f7ecd9)", fg:"#31558a", ac:"#31558a", slogan:"Forever West" },
 ];
 
+// ── Canada data ──────────────────────────────────────────────────────────────
+// col/row place each province/territory on the map grid, in its own 12x2 block
+// stacked above the US grid. confYear = year joined Confederation (Canada's
+// equivalent of "statehood").
+const CA_PROVINCES = [
+  { abbr:"ON", name:"Ontario",                    cap:"Toronto",        pop:"15.6 million", bird:"Common Loon",              confYear:1867, col:6,  row:1, bg:"#ffffff", fg:"#003087", ac:"#003087", slogan:"A Place to Grow" },
+  { abbr:"QC", name:"Quebec",                      cap:"Quebec City",    pop:"8.9 million",  bird:"Snowy Owl",                 confYear:1867, col:8,  row:1, bg:"linear-gradient(180deg,#eaf2fb,#ffffff)", fg:"#003da5", ac:"#003da5", slogan:"Je me souviens" },
+  { abbr:"NS", name:"Nova Scotia",                 cap:"Halifax",        pop:"1.0 million",  bird:"Osprey",                    confYear:1867, col:10, row:1, bg:"#ffffff", fg:"#00205b", ac:"#00205b", slogan:"Canada's Ocean Playground" },
+  { abbr:"NB", name:"New Brunswick",                cap:"Fredericton",    pop:"840,000",      bird:"Black-capped Chickadee",    confYear:1867, col:9,  row:1, bg:"#f7faf5", fg:"#1b5e3a", ac:"#1b5e3a", slogan:"Picture Province" },
+  { abbr:"MB", name:"Manitoba",                    cap:"Winnipeg",       pop:"1.4 million",  bird:"Great Grey Owl",            confYear:1870, col:4,  row:1, bg:"linear-gradient(180deg,#fdf3d0,#f3dfa0)", fg:"#5c3a1e", ac:"#5c3a1e", slogan:"Friendly Manitoba" },
+  { abbr:"BC", name:"British Columbia",             cap:"Victoria",       pop:"5.6 million",  bird:"Steller's Jay",             confYear:1871, col:1,  row:1, bg:"linear-gradient(180deg,#cfe6f7,#eef8ff)", fg:"#00305c", ac:"#00305c", slogan:"Beautiful British Columbia" },
+  { abbr:"PE", name:"Prince Edward Island",         cap:"Charlottetown",  pop:"175,000",      bird:"Blue Jay",                  confYear:1873, col:10, row:0, bg:"#fdfaf5", fg:"#a31621", ac:"#a31621", slogan:"Birthplace of Confederation" },
+  { abbr:"SK", name:"Saskatchewan",                 cap:"Regina",         pop:"1.2 million",  bird:"Sharp-tailed Grouse",       confYear:1905, col:3,  row:1, bg:"linear-gradient(180deg,#fdf6d8,#eddd9a)", fg:"#2e6b2e", ac:"#2e6b2e", slogan:"Land of Living Skies" },
+  { abbr:"AB", name:"Alberta",                     cap:"Edmonton",       pop:"4.7 million",  bird:"Great Horned Owl",          confYear:1905, col:2,  row:1, bg:"#eef4fb", fg:"#00447c", ac:"#00447c", slogan:"Wild Rose Country" },
+  { abbr:"NL", name:"Newfoundland and Labrador",    cap:"St. John's",     pop:"540,000",      bird:"Atlantic Puffin",           confYear:1949, col:11, row:1, bg:"#ffffff", fg:"#00695c", ac:"#00695c", slogan:"Canada's Happy Province" },
+  { abbr:"YT", name:"Yukon",                        cap:"Whitehorse",     pop:"45,000",       bird:"Common Raven",              confYear:1898, col:1,  row:0, bg:"linear-gradient(180deg,#fdf3d0,#ffffff)", fg:"#2b2b2b", ac:"#8a6d1f", slogan:"Larger Than Life" },
+  { abbr:"NT", name:"Northwest Territories",        cap:"Yellowknife",    pop:"45,000",       bird:"Gyrfalcon",                 confYear:1870, col:3,  row:0, bg:"#f2f8f0", fg:"#1e5c33", ac:"#1e5c33", slogan:"Spectacular NWT" },
+  { abbr:"NU", name:"Nunavut",                      cap:"Iqaluit",        pop:"40,000",       bird:"Rock Ptarmigan",            confYear:1999, col:6,  row:0, bg:"linear-gradient(180deg,#eaf2fb,#ffffff)", fg:"#003087", ac:"#003087", slogan:"The Arctic Awaits" },
+];
+
 const REGIONS = ["West", "Midwest", "South", "Northeast"];
 
 const REGION_COLORS = {
@@ -61,6 +81,9 @@ const REGION_COLORS = {
   Midwest:   "#f2cc8f",
   South:     "#81b29a",
   Northeast: "#7aa6d6",
+  Canada:    "#e8555f",
 };
 
 const STATE_BY_ABBR = Object.fromEntries(STATES.map(s => [s.abbr, s]));
+const CA_BY_ABBR = Object.fromEntries(CA_PROVINCES.map(s => [s.abbr, s]));
+const PLACE_BY_ABBR = { ...STATE_BY_ABBR, ...CA_BY_ABBR };

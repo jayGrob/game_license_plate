@@ -8,6 +8,7 @@
   --accent: #fbbf24;
   --found: #34d399;
   --found-deep: #0e9f6e;
+  --canada: #e8555f;
   --radius: 16px;
   font-size: clamp(15px, 2.2vw, 17px);
 }
@@ -113,6 +114,18 @@ main {
 .hero-num small { font-size: .9rem; color: var(--ink-dim); font-weight: 600; }
 .hero-cap { font-size: .72rem; color: var(--ink-dim); text-transform: uppercase; letter-spacing: 1px; }
 
+/* Map blocks (Canada stacked above USA when both are shown) */
+.map-block + .map-block { margin-top: 18px; }
+.map-block-label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: .82rem;
+  font-weight: 700;
+  color: var(--ink-dim);
+  margin-bottom: 8px;
+}
+
 /* Tile map */
 .tile-map {
   display: grid;
@@ -148,13 +161,20 @@ main {
   font-size: .55em;
   opacity: .85;
 }
+.tile.ca.found {
+  background: linear-gradient(160deg, #f76a72, var(--canada));
+  border-color: var(--canada);
+  color: #3a0509;
+  box-shadow: 0 0 12px rgba(232, 85, 95, .35);
+}
 .tile.just-found { animation: pop .6s cubic-bezier(.22,1.6,.36,1); }
 @keyframes pop { 0% { transform: scale(.4) rotate(-12deg); } 100% { transform: scale(1); } }
 
-.legend { display: flex; gap: 18px; margin-top: 12px; font-size: .76rem; color: var(--ink-dim); }
+.legend { display: flex; gap: 18px; margin-top: 12px; font-size: .76rem; color: var(--ink-dim); flex-wrap: wrap; }
 .legend-item { display: flex; align-items: center; gap: 6px; }
 .swatch { width: 13px; height: 13px; border-radius: 4px; display: inline-block; }
 .swatch-found { background: linear-gradient(160deg, var(--found), var(--found-deep)); }
+.swatch-found-ca { background: linear-gradient(160deg, #f76a72, var(--canada)); }
 .swatch-open { background: #16223a; border: 1.5px solid #3b4d6b; }
 
 /* Stat cards */
@@ -186,9 +206,12 @@ main {
   font-size: .86rem;
 }
 .history .h-num { color: var(--ink-dim); font-size: .74rem; min-width: 24px; }
+.h-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; background: var(--found); }
+.h-dot.ca { background: var(--canada); }
 .history .h-state { font-weight: 700; flex: 1; }
 .history .h-when { color: var(--ink-dim); font-size: .74rem; text-align: right; }
 .history .h-gap { color: var(--found); font-size: .72rem; }
+.history .h-gap.ca { color: var(--canada); }
 .empty-note { color: var(--ink-dim); font-size: .85rem; text-align: center; padding: 8px 0 4px; }
 
 .foot { text-align: center; font-size: .72rem; color: var(--ink-dim); padding-top: 6px; }
@@ -222,6 +245,64 @@ main {
   cursor: pointer;
   font-size: .9rem;
   z-index: 2;
+}
+
+/* Region picker */
+.modal h3 { font-size: 1.1rem; margin-bottom: 6px; }
+.popover-sub { font-size: .8rem; color: var(--ink-dim); line-height: 1.5; margin-bottom: 16px; }
+.region-option {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  text-align: left;
+  background: #16223a;
+  border: 2px solid var(--card-edge);
+  border-radius: 14px;
+  padding: 12px 14px;
+  margin-bottom: 10px;
+  cursor: pointer;
+  color: var(--ink);
+  transition: border-color .15s, background .15s;
+}
+.region-option:hover { border-color: #4b5f82; }
+.region-option.active { border-color: var(--accent); background: rgba(251, 191, 36, .08); }
+.region-option-emoji { font-size: 1.6rem; }
+.region-option-text { flex: 1; font-size: .86rem; line-height: 1.4; }
+.region-option-text strong { font-size: .95rem; }
+.region-check {
+  width: 22px; height: 22px;
+  border-radius: 50%;
+  border: 2px solid #4b5f82;
+  display: flex; align-items: center; justify-content: center;
+  font-size: .7rem;
+  color: transparent;
+  flex-shrink: 0;
+}
+.region-option.active .region-check {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #241203;
+}
+.popover-note {
+  font-size: .74rem;
+  color: var(--ink-dim);
+  background: #16223a;
+  border-radius: 10px;
+  padding: 9px 11px;
+  margin: 4px 0 16px;
+  line-height: 1.5;
+}
+.popover-close {
+  width: 100%;
+  padding: 12px;
+  border: none;
+  border-radius: 12px;
+  background: linear-gradient(90deg, #fbbf24, #f97316);
+  color: #241203;
+  font-size: .95rem;
+  font-weight: 800;
+  cursor: pointer;
 }
 
 /* License plate graphic */
@@ -304,6 +385,7 @@ main {
 }
 .spot-btn:hover { transform: translateY(-2px); filter: brightness(1.06); }
 .spot-btn:active { transform: scale(.97); }
+.spot-btn.ca { background: linear-gradient(90deg, #e8555f, #c62838); color: #fff; }
 
 .found-banner {
   text-align: center;
@@ -314,6 +396,11 @@ main {
   padding: 10px;
   font-size: .86rem;
   font-weight: 600;
+}
+.found-banner.ca {
+  background: rgba(232, 85, 95, .12);
+  border-color: rgba(232, 85, 95, .4);
+  color: var(--canada);
 }
 .undo-link {
   display: block;
@@ -336,6 +423,15 @@ main {
 }
 @keyframes fall {
   to { transform: translateY(105vh) rotate(720deg); opacity: .7; }
+}
+.leaf-bit {
+  position: absolute;
+  top: -30px;
+  animation: leafFall linear forwards;
+  user-select: none;
+}
+@keyframes leafFall {
+  to { transform: translateY(105vh) rotate(540deg); opacity: .85; }
 }
 
 @media (max-width: 560px) {

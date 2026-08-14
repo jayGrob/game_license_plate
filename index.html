@@ -28,6 +28,7 @@
     </div>
   </div>
   <div class="topbar-actions">
+    <button id="btnRegion" class="icon-btn" title="Game region">🍁</button>
     <button id="btnSound" class="icon-btn" title="Toggle sound">🔊</button>
     <button id="btnReset" class="icon-btn" title="Start a new trip">🔄</button>
   </div>
@@ -48,8 +49,12 @@
     </div>
     <div class="hero-stats">
       <div class="hero-stat">
-        <span id="foundCount" class="hero-num">0<small>/50</small></span>
+        <span id="foundUSCount" class="hero-num">0<small>/50</small></span>
         <span class="hero-cap">states spotted</span>
+      </div>
+      <div class="hero-stat" id="foundCAStat" style="display:none">
+        <span id="foundCACount" class="hero-num">0<small>/13</small></span>
+        <span class="hero-cap">provinces &amp; territories spotted</span>
       </div>
       <div class="hero-stat">
         <span id="tripTime" class="hero-num">—</span>
@@ -64,10 +69,21 @@
 
   <!-- Map -->
   <section class="card">
-    <h2 class="card-title">🗺️ The Map <span class="hint">tap a state to see its plate — tap again when you spot it!</span></h2>
-    <div id="map" class="tile-map" role="grid" aria-label="United States map"></div>
+    <h2 class="card-title">🗺️ The Map <span class="hint">tap a tile to see its plate — tap again when you spot it!</span></h2>
+
+    <div class="map-block" id="blockCanada" style="display:none">
+      <div class="map-block-label">🇨🇦 Canada</div>
+      <div id="mapCanada" class="tile-map" role="grid" aria-label="Canada map"></div>
+    </div>
+
+    <div class="map-block">
+      <div class="map-block-label" id="usLabel" style="display:none">🇺🇸 United States</div>
+      <div id="map" class="tile-map" role="grid" aria-label="United States map"></div>
+    </div>
+
     <div class="legend">
       <span class="legend-item"><span class="swatch swatch-found"></span>Spotted</span>
+      <span class="legend-item" id="legendCa" style="display:none"><span class="swatch swatch-found-ca"></span>Spotted (Canada)</span>
       <span class="legend-item"><span class="swatch swatch-open"></span>Still hunting</span>
     </div>
   </section>
@@ -112,11 +128,38 @@
   <footer class="foot">Everything is saved on this device automatically. Happy hunting!</footer>
 </main>
 
-<!-- State detail modal -->
+<!-- State/province detail modal -->
 <div id="overlay" class="overlay hidden">
   <div class="modal card" role="dialog" aria-modal="true">
     <button id="modalClose" class="modal-close" aria-label="Close">✕</button>
     <div id="modalBody"></div>
+  </div>
+</div>
+
+<!-- Region picker -->
+<div id="regionOverlay" class="overlay hidden">
+  <div class="modal card region-picker" role="dialog" aria-modal="true">
+    <button id="regionModalClose" class="modal-close" aria-label="Close">✕</button>
+    <h3>Game Region</h3>
+    <p class="popover-sub">Choose which plates you're hunting for on this trip.</p>
+
+    <button class="region-option" data-mode="usa">
+      <span class="region-option-emoji">🇺🇸</span>
+      <span class="region-option-text"><strong>USA Only</strong><br>50 states</span>
+      <span class="region-check">✓</span>
+    </button>
+
+    <button class="region-option" data-mode="both">
+      <span class="region-option-emoji">🇺🇸🇨🇦</span>
+      <span class="region-option-text"><strong>USA + Canada</strong><br>50 states + 13 provinces &amp; territories</span>
+      <span class="region-check">✓</span>
+    </button>
+
+    <p class="popover-note">
+      Switching modes doesn't erase anything — USA and Canada finds are tracked separately, so toggling back and forth keeps every spot you've made.
+    </p>
+
+    <button class="popover-close" id="btnRegionDone">Done</button>
   </div>
 </div>
 

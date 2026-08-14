@@ -1,6 +1,6 @@
 // ── Plate Chase service worker ──────────────────────────────────────────────
 // Bump CACHE_VERSION whenever app shell files change so clients pick up the update.
-const CACHE_VERSION = "v4";
+const CACHE_VERSION = "v5";
 const CACHE_NAME = `plate-chase-${CACHE_VERSION}`;
 
 const APP_SHELL = [
@@ -17,6 +17,7 @@ const APP_SHELL = [
   "./icons/apple-touch-icon.png",
   "./icons/favicon-32.png",
   "./icons/favicon-16.png",
+  "./sounds/canada-horn.mp3",
 ];
 
 self.addEventListener("install", event => {

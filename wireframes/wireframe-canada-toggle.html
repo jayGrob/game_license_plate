@@ -1,0 +1,952 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Plate Chase — Canada Toggle Wireframe</title>
+<style>
+  :root {
+    --bg: #0f172a;
+    --card: #1e293b;
+    --card-edge: #2c3b52;
+    --ink: #e8edf5;
+    --ink-dim: #93a3bc;
+    --accent: #fbbf24;
+    --found: #34d399;
+    --found-deep: #0e9f6e;
+    --canada: #e8555f;
+    font-size: clamp(15px, 2.2vw, 17px);
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    background: var(--bg);
+    background-image: radial-gradient(1200px 500px at 50% -100px, #1b2a4a, transparent);
+    color: var(--ink);
+    min-height: 100vh;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  /* ── Wireframe-only chrome (won't exist in the real app) ─────────────── */
+  .wireframe-banner {
+    background: linear-gradient(90deg, #7c3aed, #db2777);
+    color: #fff;
+    font-size: .82rem;
+    text-align: center;
+    padding: 10px 14px;
+    line-height: 1.5;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+  }
+  .wireframe-banner strong { font-weight: 800; }
+  .new-badge {
+    display: inline-block;
+    background: #f97316;
+    color: #241203;
+    font-size: .58rem;
+    font-weight: 800;
+    letter-spacing: .5px;
+    padding: 2px 5px;
+    border-radius: 5px;
+    vertical-align: middle;
+    position: relative;
+    top: -1px;
+  }
+  .icon-btn .new-badge {
+    position: absolute;
+    top: -6px;
+    right: -6px;
+  }
+  .section-note {
+    font-size: .72rem;
+    color: #c9a7f5;
+    background: rgba(124, 58, 237, .12);
+    border: 1px dashed rgba(124, 58, 237, .5);
+    border-radius: 10px;
+    padding: 8px 12px;
+    margin-bottom: 12px;
+  }
+
+  main {
+    max-width: 880px;
+    margin: 0 auto;
+    padding: 0 14px 40px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  .topbar {
+    max-width: 880px;
+    margin: 0 auto;
+    padding: 18px 14px 14px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+  }
+  .brand { display: flex; align-items: center; gap: 12px; }
+  .brand-car { font-size: 2.2rem; filter: drop-shadow(0 4px 10px rgba(0,0,0,.5)); }
+  .brand h1 {
+    font-size: 1.5rem;
+    letter-spacing: .5px;
+    background: linear-gradient(90deg, #fbbf24, #f97316);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+  .tagline { font-size: .78rem; color: var(--ink-dim); }
+  .topbar-actions { display: flex; gap: 8px; }
+  .icon-btn {
+    position: relative;
+    background: var(--card);
+    border: 1px solid var(--card-edge);
+    border-radius: 12px;
+    font-size: 1.1rem;
+    padding: 9px 12px;
+    cursor: pointer;
+    transition: transform .15s, background .15s;
+  }
+  .icon-btn:hover { transform: translateY(-1px); background: #263650; }
+
+  .card {
+    background: var(--card);
+    border: 1px solid var(--card-edge);
+    border-radius: 16px;
+    padding: 16px;
+    box-shadow: 0 10px 30px rgba(2, 6, 23, .35);
+  }
+  .card-title { font-size: 1.02rem; margin-bottom: 12px; display: flex; align-items: center; gap: 8px; }
+  .card-title .hint { font-size: .74rem; font-weight: 400; color: var(--ink-dim); margin-left: 2px; }
+
+  /* Hero */
+  .hero { display: flex; align-items: center; gap: 20px; flex-wrap: wrap; }
+  .progress-ring-wrap { position: relative; width: 128px; height: 128px; flex: 0 0 auto; }
+  .progress-ring { width: 100%; height: 100%; transform: rotate(-90deg); }
+  .ring-bg, .ring-fill { fill: none; stroke-width: 11; }
+  .ring-bg { stroke: #2c3b52; }
+  .ring-fill {
+    stroke: var(--found);
+    stroke-linecap: round;
+    stroke-dasharray: 326.7;
+    stroke-dashoffset: 326.7;
+    transition: stroke-dashoffset .8s cubic-bezier(.22,1,.36,1);
+  }
+  .ring-label {
+    position: absolute; inset: 0;
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+  }
+  .ring-label span:first-child { font-size: 1.7rem; font-weight: 800; }
+  .ring-sub { font-size: .68rem; color: var(--ink-dim); text-transform: uppercase; letter-spacing: 1px; }
+  .hero-stats { display: flex; gap: 22px; flex-wrap: wrap; flex: 1; }
+  .hero-stat { display: flex; flex-direction: column; gap: 2px; }
+  .hero-num { font-size: 1.45rem; font-weight: 800; }
+  .hero-num small { font-size: .9rem; color: var(--ink-dim); font-weight: 600; }
+  .hero-cap { font-size: .72rem; color: var(--ink-dim); text-transform: uppercase; letter-spacing: 1px; }
+  .hero-cap .new-badge { text-transform: none; letter-spacing: 0; margin-left: 4px; }
+
+  /* Map */
+  .map-block { margin-bottom: 4px; }
+  .map-block + .map-block { margin-top: 18px; }
+  .map-block-label {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: .82rem;
+    font-weight: 700;
+    color: var(--ink-dim);
+    margin-bottom: 8px;
+  }
+  .tile-map {
+    display: grid;
+    grid-template-columns: repeat(12, 1fr);
+    gap: clamp(3px, .8vw, 7px);
+  }
+  .tile {
+    aspect-ratio: 1;
+    border: 1.5px solid #3b4d6b;
+    border-radius: 22%;
+    background: #16223a;
+    color: var(--ink-dim);
+    font-weight: 700;
+    font-size: clamp(.55rem, 1.9vw, .9rem);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: transform .12s, background .2s, color .2s, border-color .2s;
+  }
+  .tile:hover { transform: scale(1.12); border-color: var(--accent); color: var(--ink); }
+  .tile.found {
+    background: linear-gradient(160deg, var(--found), var(--found-deep));
+    border-color: var(--found);
+    color: #06281c;
+    box-shadow: 0 0 12px rgba(52, 211, 153, .35);
+  }
+  .tile.ca.found {
+    background: linear-gradient(160deg, #f76a72, var(--canada));
+    border-color: var(--canada);
+    color: #3a0509;
+    box-shadow: 0 0 12px rgba(232, 85, 95, .35);
+  }
+  .legend { display: flex; gap: 18px; margin-top: 14px; font-size: .76rem; color: var(--ink-dim); flex-wrap: wrap; }
+  .legend-item { display: flex; align-items: center; gap: 6px; }
+  .swatch { width: 13px; height: 13px; border-radius: 4px; display: inline-block; }
+  .swatch-found { background: linear-gradient(160deg, var(--found), var(--found-deep)); }
+  .swatch-found-ca { background: linear-gradient(160deg, #f76a72, var(--canada)); }
+  .swatch-open { background: #16223a; border: 1.5px solid #3b4d6b; }
+
+  /* Regions */
+  .regions { display: flex; flex-direction: column; gap: 12px; }
+  .region-row { display: grid; grid-template-columns: 100px 1fr 60px; align-items: center; gap: 10px; }
+  .region-row.is-new .region-name { display: flex; align-items: center; gap: 6px; }
+  .region-name { font-size: .85rem; font-weight: 600; }
+  .region-bar { height: 12px; background: #16223a; border-radius: 99px; overflow: hidden; }
+  .region-fill { height: 100%; border-radius: 99px; transition: width .5s cubic-bezier(.22,1,.36,1); }
+  .region-count { font-size: .78rem; color: var(--ink-dim); text-align: right; }
+
+  /* ── Region picker popover ─────────────────────────────────────────── */
+  .overlay {
+    position: fixed; inset: 0;
+    background: rgba(4, 10, 24, .78);
+    backdrop-filter: blur(4px);
+    display: flex; align-items: center; justify-content: center;
+    padding: 16px;
+    z-index: 90;
+  }
+  .overlay.hidden { display: none; }
+  .popover-card {
+    width: min(400px, 100%);
+    background: var(--card);
+    border: 1px solid var(--card-edge);
+    border-radius: 18px;
+    padding: 20px;
+    box-shadow: 0 20px 50px rgba(0,0,0,.5);
+  }
+  .popover-card h3 { font-size: 1.1rem; margin-bottom: 6px; }
+  .popover-sub { font-size: .8rem; color: var(--ink-dim); line-height: 1.5; margin-bottom: 16px; }
+  .region-option {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    width: 100%;
+    text-align: left;
+    background: #16223a;
+    border: 2px solid var(--card-edge);
+    border-radius: 14px;
+    padding: 12px 14px;
+    margin-bottom: 10px;
+    cursor: pointer;
+    color: var(--ink);
+    transition: border-color .15s, background .15s;
+  }
+  .region-option:hover { border-color: #4b5f82; }
+  .region-option.active { border-color: var(--accent); background: rgba(251, 191, 36, .08); }
+  .region-option-emoji { font-size: 1.6rem; }
+  .region-option-text { flex: 1; font-size: .86rem; line-height: 1.4; }
+  .region-option-text strong { font-size: .95rem; }
+  .region-check {
+    width: 22px; height: 22px;
+    border-radius: 50%;
+    border: 2px solid #4b5f82;
+    display: flex; align-items: center; justify-content: center;
+    font-size: .7rem;
+    color: transparent;
+    flex-shrink: 0;
+  }
+  .region-option.active .region-check {
+    background: var(--accent);
+    border-color: var(--accent);
+    color: #241203;
+  }
+  .popover-note {
+    font-size: .74rem;
+    color: var(--ink-dim);
+    background: #16223a;
+    border-radius: 10px;
+    padding: 9px 11px;
+    margin: 4px 0 16px;
+    line-height: 1.5;
+  }
+  .popover-close {
+    width: 100%;
+    padding: 12px;
+    border: none;
+    border-radius: 12px;
+    background: linear-gradient(90deg, #fbbf24, #f97316);
+    color: #241203;
+    font-size: .95rem;
+    font-weight: 800;
+    cursor: pointer;
+  }
+
+  /* Trip Log */
+  .history { list-style: none; display: flex; flex-direction: column; gap: 8px; }
+  .history li {
+    display: flex; align-items: center; gap: 10px;
+    background: #16223a;
+    border-radius: 10px;
+    padding: 8px 12px;
+    font-size: .86rem;
+  }
+  .history .h-num { color: var(--ink-dim); font-size: .74rem; min-width: 24px; }
+  .h-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; background: var(--found); }
+  .h-dot.ca { background: var(--canada); }
+  .history .h-state { font-weight: 700; flex: 1; }
+  .history .h-when { color: var(--ink-dim); font-size: .74rem; text-align: right; }
+  .history .h-gap { color: var(--found); font-size: .72rem; }
+  .history .h-gap.ca { color: var(--canada); }
+  .empty-note { color: var(--ink-dim); font-size: .85rem; text-align: center; padding: 8px 0 4px; }
+
+  /* ── Plate detail modal ────────────────────────────────────────────── */
+  .plate-modal { position: relative; max-height: 92vh; overflow-y: auto; }
+  .modal-close {
+    position: absolute; top: 10px; right: 10px;
+    background: #16223a; border: 1px solid var(--card-edge);
+    color: var(--ink-dim);
+    border-radius: 50%;
+    width: 32px; height: 32px;
+    cursor: pointer;
+    font-size: .9rem;
+    z-index: 2;
+  }
+  .modal-nick { text-align: center; color: var(--ink-dim); font-size: .82rem; margin: -8px 0 4px; }
+
+  .plate {
+    border-radius: 12px;
+    padding: 12px 14px 10px;
+    margin: 20px 0 16px;
+    border: 3px solid rgba(0,0,0,.25);
+    box-shadow:
+      inset 0 0 0 2px rgba(255,255,255,.35),
+      inset 0 2px 6px rgba(255,255,255,.4),
+      inset 0 -3px 8px rgba(0,0,0,.18),
+      0 10px 22px rgba(0,0,0,.45);
+    text-align: center;
+    position: relative;
+    user-select: none;
+  }
+  .plate::before, .plate::after {
+    content: "";
+    position: absolute;
+    top: 9px;
+    width: 9px; height: 9px;
+    border-radius: 50%;
+    background: radial-gradient(circle at 35% 35%, #cfd6df, #6b7482 70%);
+    box-shadow: inset 0 1px 2px rgba(0,0,0,.5);
+  }
+  .plate::before { left: 12%; }
+  .plate::after { right: 12%; }
+  .plate-state { font-size: .95rem; font-weight: 800; text-transform: uppercase; letter-spacing: 3.5px; }
+  .plate-serial {
+    font-size: 2.5rem; font-weight: 800;
+    font-family: "Arial Narrow", "Segoe UI", sans-serif;
+    letter-spacing: 5px; line-height: 1.2; margin: 4px 0 2px;
+    text-shadow: 0 1px 0 rgba(255,255,255,.35), 0 -1px 1px rgba(0,0,0,.25);
+  }
+  .plate-slogan { font-size: .72rem; font-weight: 700; text-transform: uppercase; letter-spacing: 2px; opacity: .9; }
+
+  .facts { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin: 16px 0; }
+  .fact { background: #16223a; border-radius: 12px; padding: 10px 12px; display: flex; flex-direction: column; gap: 2px; }
+  .fact-label { font-size: .64rem; color: var(--ink-dim); text-transform: uppercase; letter-spacing: 1px; }
+  .fact-val { font-size: .88rem; font-weight: 700; }
+
+  .spot-btn {
+    width: 100%; padding: 14px; border: none; border-radius: 14px;
+    background: linear-gradient(90deg, #fbbf24, #f97316);
+    color: #241203; font-size: 1.05rem; font-weight: 800; cursor: pointer;
+    transition: transform .12s, filter .12s;
+  }
+  .spot-btn:hover { transform: translateY(-2px); filter: brightness(1.06); }
+  .spot-btn:active { transform: scale(.97); }
+  .spot-btn.ca { background: linear-gradient(90deg, #e8555f, #c62838); color: #fff; }
+
+  .found-banner {
+    text-align: center;
+    background: rgba(52, 211, 153, .12);
+    border: 1px solid rgba(52, 211, 153, .4);
+    color: var(--found);
+    border-radius: 12px; padding: 10px; font-size: .86rem; font-weight: 600;
+  }
+  .found-banner.ca {
+    background: rgba(232, 85, 95, .12);
+    border-color: rgba(232, 85, 95, .4);
+    color: var(--canada);
+  }
+  .undo-link {
+    display: block; margin: 10px auto 0;
+    background: none; border: none;
+    color: var(--ink-dim); font-size: .74rem;
+    text-decoration: underline; cursor: pointer;
+  }
+
+  /* ── Celebration effects ───────────────────────────────────────────── */
+  .confetti-layer { position: fixed; inset: 0; pointer-events: none; z-index: 110; overflow: hidden; }
+  .confetti-bit {
+    position: absolute;
+    top: -14px;
+    width: 9px; height: 14px;
+    border-radius: 2px;
+    animation: fall linear forwards;
+  }
+  @keyframes fall { to { transform: translateY(105vh) rotate(720deg); opacity: .7; } }
+  .leaf-bit {
+    position: absolute;
+    top: -30px;
+    animation: leafFall linear forwards;
+    user-select: none;
+  }
+  @keyframes leafFall { to { transform: translateY(105vh) rotate(540deg); opacity: .85; } }
+
+  @media (max-width: 560px) {
+    .region-row { grid-template-columns: 84px 1fr 52px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="wireframe-banner">
+  🎨 <strong>Wireframe for review</strong> — nothing here is wired into the real game yet.
+  Tap the new <span class="new-badge">NEW</span> 🍁 button in the top bar to try the region picker.
+</div>
+
+<header class="topbar">
+  <div class="brand">
+    <span class="brand-car">🚗</span>
+    <div>
+      <h1>Plate Chase</h1>
+      <p class="tagline">The Great American License Plate Hunt</p>
+    </div>
+  </div>
+  <div class="topbar-actions">
+    <button id="btnRegion" class="icon-btn" title="Game region">
+      🍁
+      <span class="new-badge">NEW</span>
+    </button>
+    <button class="icon-btn" title="Toggle sound">🔊</button>
+    <button class="icon-btn" title="Start a new trip">🔄</button>
+  </div>
+</header>
+
+<main>
+  <section class="card hero">
+    <div class="progress-ring-wrap">
+      <svg class="progress-ring" viewBox="0 0 120 120">
+        <circle class="ring-bg" cx="60" cy="60" r="52"/>
+        <circle id="ringFill" class="ring-fill" cx="60" cy="60" r="52"/>
+      </svg>
+      <div class="ring-label">
+        <span id="pctBig">0%</span>
+        <span class="ring-sub">complete</span>
+      </div>
+    </div>
+    <div class="hero-stats">
+      <div class="hero-stat">
+        <span id="foundUSCount" class="hero-num">0<small>/50</small></span>
+        <span class="hero-cap">states spotted</span>
+      </div>
+      <div class="hero-stat" id="foundCAStat" style="display:none">
+        <span id="foundCACount" class="hero-num">0<small>/13</small></span>
+        <span class="hero-cap">provinces &amp; territories spotted <span class="new-badge">NEW</span></span>
+      </div>
+      <div class="hero-stat">
+        <span id="tripTime" class="hero-num">—</span>
+        <span class="hero-cap">trip time</span>
+      </div>
+      <div class="hero-stat">
+        <span id="lastFind" class="hero-num">—</span>
+        <span class="hero-cap">last spotted</span>
+      </div>
+    </div>
+  </section>
+
+  <section class="card">
+    <h2 class="card-title">🗺️ The Map <span class="hint">tap a tile to see its plate — tap again when you spot it!</span></h2>
+    <div class="section-note" id="mapNote">
+      Showing <strong>USA only</strong> — 50 states. Switch to "USA + Canada" in the 🍁 region picker to see the map grow.
+    </div>
+
+    <div class="map-block" id="blockCanada" style="display:none">
+      <div class="map-block-label">🇨🇦 Canada <span class="new-badge">NEW</span></div>
+      <div id="mapCanada" class="tile-map"></div>
+    </div>
+
+    <div class="map-block">
+      <div class="map-block-label" id="usLabel" style="display:none">🇺🇸 United States</div>
+      <div id="mapUS" class="tile-map"></div>
+    </div>
+
+    <div class="legend">
+      <span class="legend-item"><span class="swatch swatch-found"></span>Spotted (USA)</span>
+      <span class="legend-item" id="legendCa" style="display:none"><span class="swatch swatch-found-ca"></span>Spotted (Canada)</span>
+      <span class="legend-item"><span class="swatch swatch-open"></span>Still hunting</span>
+    </div>
+  </section>
+
+  <section class="card">
+    <h2 class="card-title">🧭 Regions</h2>
+    <div id="regions" class="regions"></div>
+  </section>
+
+  <section class="card">
+    <h2 class="card-title">📜 Trip Log</h2>
+    <ol id="history" class="history"></ol>
+    <p id="historyEmpty" class="empty-note">No plates spotted yet.</p>
+  </section>
+</main>
+
+<!-- Region picker popover -->
+<div id="overlay" class="overlay hidden">
+  <div class="popover-card">
+    <h3>Game Region</h3>
+    <p class="popover-sub">Choose which plates you're hunting for on this trip.</p>
+
+    <button class="region-option" data-mode="usa">
+      <span class="region-option-emoji">🇺🇸</span>
+      <span class="region-option-text"><strong>USA Only</strong><br>50 states</span>
+      <span class="region-check">✓</span>
+    </button>
+
+    <button class="region-option" data-mode="both">
+      <span class="region-option-emoji">🇺🇸🇨🇦</span>
+      <span class="region-option-text"><strong>USA + Canada</strong><br>50 states + 13 provinces &amp; territories</span>
+      <span class="region-check">✓</span>
+    </button>
+
+    <p class="popover-note">
+      Switching modes doesn't erase anything — USA and Canada finds are tracked separately, so toggling back and forth keeps every spot you've made.
+    </p>
+
+    <button class="popover-close" id="btnDone">Done</button>
+  </div>
+</div>
+
+<!-- Plate detail modal — same shape for US and Canada, styled per-region -->
+<div id="plateOverlay" class="overlay hidden">
+  <div class="popover-card plate-modal">
+    <button id="plateModalClose" class="modal-close" aria-label="Close">✕</button>
+    <div id="plateModalBody"></div>
+  </div>
+</div>
+
+<div id="confettiLayer" class="confetti-layer" aria-hidden="true"></div>
+
+<script>
+// ── Demo data (subset of real data.js columns, plus a fake region + a few pre-marked "found" tiles so both modes look alive) ──
+// Plate colors/facts copied from the real data.js so the plate popup for US states matches the live game exactly.
+const US_STATES = [
+  {abbr:"AL",col:7,row:6,region:"South",name:"Alabama",cap:"Montgomery",pop:"5.1 million",bird:"Yellowhammer",year:1819,bg:"#fdfdf6",fg:"#a31621",ac:"#a31621",slogan:"Heart of Dixie"},
+  {abbr:"AK",col:0,row:0,region:"West",name:"Alaska",cap:"Juneau",pop:"733,000",bird:"Willow Ptarmigan",year:1959,bg:"#ffd24d",fg:"#1b3d8f",ac:"#1b3d8f",slogan:"The Last Frontier"},
+  {abbr:"AZ",col:2,row:5,region:"West",name:"Arizona",cap:"Phoenix",pop:"7.4 million",bird:"Cactus Wren",year:1912,bg:"linear-gradient(180deg,#fde3b1,#e08e5e)",fg:"#6b2d5c",ac:"#6b2d5c",slogan:"Grand Canyon State"},
+  {abbr:"AR",col:5,row:5,region:"South",name:"Arkansas",cap:"Little Rock",pop:"3.1 million",bird:"Northern Mockingbird",year:1836,bg:"#f4f1ea",fg:"#9e1b32",ac:"#9e1b32",slogan:"The Natural State"},
+  {abbr:"CA",col:1,row:4,region:"West",name:"California",cap:"Sacramento",pop:"39.0 million",bird:"California Quail",year:1850,bg:"#ffffff",fg:"#23408e",ac:"#d6453d",slogan:"The Golden State"},
+  {abbr:"CO",col:3,row:4,region:"West",name:"Colorado",cap:"Denver",pop:"5.9 million",bird:"Lark Bunting",year:1876,bg:"linear-gradient(180deg,#e9f5ec,#8fc7a2)",fg:"#1e4d3a",ac:"#1e4d3a",slogan:"Colorful Colorado"},
+  {abbr:"CT",col:11,row:3,region:"Northeast",name:"Connecticut",cap:"Hartford",pop:"3.6 million",bird:"American Robin",year:1788,bg:"#cfe3f5",fg:"#1a2f5e",ac:"#1a2f5e",slogan:"Constitution State"},
+  {abbr:"DE",col:10,row:4,region:"South",name:"Delaware",cap:"Dover",pop:"1.0 million",bird:"Delaware Blue Hen",year:1787,bg:"#1b2a5e",fg:"#f2c94c",ac:"#f2c94c",slogan:"The First State"},
+  {abbr:"FL",col:9,row:7,region:"South",name:"Florida",cap:"Tallahassee",pop:"22.6 million",bird:"Northern Mockingbird",year:1845,bg:"linear-gradient(180deg,#ffffff,#ffe9d6)",fg:"#2e7d32",ac:"#e65100",slogan:"Sunshine State"},
+  {abbr:"GA",col:8,row:6,region:"South",name:"Georgia",cap:"Atlanta",pop:"11.0 million",bird:"Brown Thrasher",year:1788,bg:"linear-gradient(180deg,#fbe4d0,#f6c290)",fg:"#7a3e2f",ac:"#b23a48",slogan:"Peach State"},
+  {abbr:"HI",col:0,row:7,region:"West",name:"Hawaii",cap:"Honolulu",pop:"1.4 million",bird:"Nēnē (Hawaiian Goose)",year:1959,bg:"linear-gradient(90deg,#ffdfe8,#fff4d6,#dff3ff)",fg:"#b3446c",ac:"#b3446c",slogan:"Aloha State"},
+  {abbr:"ID",col:2,row:2,region:"West",name:"Idaho",cap:"Boise",pop:"2.0 million",bird:"Mountain Bluebird",year:1890,bg:"#f2f7f0",fg:"#2f6b3a",ac:"#b3202c",slogan:"Famous Potatoes"},
+  {abbr:"IL",col:6,row:3,region:"Midwest",name:"Illinois",cap:"Springfield",pop:"12.5 million",bird:"Northern Cardinal",year:1818,bg:"#eef4fb",fg:"#1f3a93",ac:"#c0392b",slogan:"Land of Lincoln"},
+  {abbr:"IN",col:7,row:3,region:"Midwest",name:"Indiana",cap:"Indianapolis",pop:"6.9 million",bird:"Northern Cardinal",year:1816,bg:"linear-gradient(180deg,#183a6d,#2c5aa0)",fg:"#f2c94c",ac:"#f2c94c",slogan:"Crossroads of America"},
+  {abbr:"IA",col:5,row:3,region:"Midwest",name:"Iowa",cap:"Des Moines",pop:"3.2 million",bird:"Eastern Goldfinch",year:1846,bg:"#f7f7f2",fg:"#2b2b2b",ac:"#1f3a93",slogan:"The Hawkeye State"},
+  {abbr:"KS",col:4,row:5,region:"Midwest",name:"Kansas",cap:"Topeka",pop:"2.9 million",bird:"Western Meadowlark",year:1861,bg:"linear-gradient(180deg,#fdf6e3,#f7d774)",fg:"#23408e",ac:"#23408e",slogan:"The Sunflower State"},
+  {abbr:"KY",col:6,row:4,region:"South",name:"Kentucky",cap:"Frankfort",pop:"4.5 million",bird:"Northern Cardinal",year:1792,bg:"linear-gradient(180deg,#dfeffa,#bcdcf5)",fg:"#1a3e6e",ac:"#1a3e6e",slogan:"Unbridled Spirit"},
+  {abbr:"LA",col:5,row:6,region:"South",name:"Louisiana",cap:"Baton Rouge",pop:"4.6 million",bird:"Brown Pelican",year:1812,bg:"#f6f2e7",fg:"#1f4e79",ac:"#b58900",slogan:"Sportsman's Paradise"},
+  {abbr:"ME",col:11,row:0,region:"Northeast",name:"Maine",cap:"Augusta",pop:"1.4 million",bird:"Black-capped Chickadee",year:1820,bg:"#e8f1e4",fg:"#204e39",ac:"#204e39",slogan:"Vacationland"},
+  {abbr:"MD",col:9,row:4,region:"South",name:"Maryland",cap:"Annapolis",pop:"6.2 million",bird:"Baltimore Oriole",year:1788,bg:"#fdf3d7",fg:"#222222",ac:"#c8102e",slogan:"Old Line State"},
+  {abbr:"MA",col:10,row:2,region:"Northeast",name:"Massachusetts",cap:"Boston",pop:"7.0 million",bird:"Black-capped Chickadee",year:1788,bg:"#ffffff",fg:"#b71c1c",ac:"#1a3e6e",slogan:"The Spirit of America"},
+  {abbr:"MI",col:8,row:2,region:"Midwest",name:"Michigan",cap:"Lansing",pop:"10.0 million",bird:"American Robin",year:1837,bg:"linear-gradient(180deg,#dfeffa,#ffffff)",fg:"#14477d",ac:"#14477d",slogan:"Pure Michigan"},
+  {abbr:"MN",col:5,row:2,region:"Midwest",name:"Minnesota",cap:"St. Paul",pop:"5.7 million",bird:"Common Loon",year:1858,bg:"linear-gradient(180deg,#e7f4fb,#cfe9f7)",fg:"#1c5d99",ac:"#1c5d99",slogan:"10,000 Lakes"},
+  {abbr:"MS",col:6,row:6,region:"South",name:"Mississippi",cap:"Jackson",pop:"2.9 million",bird:"Northern Mockingbird",year:1817,bg:"#f6f4ef",fg:"#24425c",ac:"#7a8450",slogan:"The Magnolia State"},
+  {abbr:"MO",col:5,row:4,region:"Midwest",name:"Missouri",cap:"Jefferson City",pop:"6.2 million",bird:"Eastern Bluebird",year:1821,bg:"linear-gradient(180deg,#eef4fb,#dbe7f3)",fg:"#333333",ac:"#1f3a93",slogan:"Show-Me State"},
+  {abbr:"MT",col:3,row:2,region:"West",name:"Montana",cap:"Helena",pop:"1.1 million",bird:"Western Meadowlark",year:1889,bg:"linear-gradient(180deg,#dbe9f5,#eef6ff)",fg:"#274b69",ac:"#274b69",slogan:"Big Sky Country"},
+  {abbr:"NE",col:4,row:4,region:"Midwest",name:"Nebraska",cap:"Lincoln",pop:"2.0 million",bird:"Western Meadowlark",year:1867,bg:"linear-gradient(180deg,#fdf8e4,#f3e2a9)",fg:"#8a2b2b",ac:"#8a2b2b",slogan:"The Good Life"},
+  {abbr:"NV",col:2,row:3,region:"West",name:"Nevada",cap:"Carson City",pop:"3.2 million",bird:"Mountain Bluebird",year:1864,bg:"#dfe6ee",fg:"#16305a",ac:"#8a97a8",slogan:"The Silver State"},
+  {abbr:"NH",col:11,row:1,region:"Northeast",name:"New Hampshire",cap:"Concord",pop:"1.4 million",bird:"Purple Finch",year:1788,bg:"#f4f7f0",fg:"#244f36",ac:"#244f36",slogan:"Live Free or Die"},
+  {abbr:"NJ",col:10,row:3,region:"Northeast",name:"New Jersey",cap:"Trenton",pop:"9.3 million",bird:"Eastern Goldfinch",year:1787,bg:"linear-gradient(180deg,#fdf3d7,#f7e6b0)",fg:"#333333",ac:"#333333",slogan:"Garden State"},
+  {abbr:"NM",col:3,row:5,region:"West",name:"New Mexico",cap:"Santa Fe",pop:"2.1 million",bird:"Greater Roadrunner",year:1912,bg:"#ffd54d",fg:"#c8102e",ac:"#c8102e",slogan:"Land of Enchantment"},
+  {abbr:"NY",col:9,row:2,region:"Northeast",name:"New York",cap:"Albany",pop:"19.6 million",bird:"Eastern Bluebird",year:1788,bg:"#123a75",fg:"#f2b134",ac:"#f2b134",slogan:"Empire State"},
+  {abbr:"NC",col:7,row:5,region:"South",name:"North Carolina",cap:"Raleigh",pop:"10.8 million",bird:"Northern Cardinal",year:1789,bg:"#ffffff",fg:"#1a3e6e",ac:"#c8102e",slogan:"First in Flight"},
+  {abbr:"ND",col:4,row:2,region:"Midwest",name:"North Dakota",cap:"Bismarck",pop:"780,000",bird:"Western Meadowlark",year:1889,bg:"linear-gradient(180deg,#e9f2fa,#f7ecd9)",fg:"#31558a",ac:"#31558a",slogan:"Peace Garden State"},
+  {abbr:"OH",col:8,row:3,region:"Midwest",name:"Ohio",cap:"Columbus",pop:"11.8 million",bird:"Northern Cardinal",year:1803,bg:"#ffffff",fg:"#b31942",ac:"#1a3e6e",slogan:"Birthplace of Aviation"},
+  {abbr:"OK",col:4,row:6,region:"South",name:"Oklahoma",cap:"Oklahoma City",pop:"4.0 million",bird:"Scissor-tailed Flycatcher",year:1907,bg:"#cfe6f2",fg:"#24425c",ac:"#24425c",slogan:"Native America"},
+  {abbr:"OR",col:1,row:3,region:"West",name:"Oregon",cap:"Salem",pop:"4.2 million",bird:"Western Meadowlark",year:1859,bg:"#f2f6ee",fg:"#2e5d43",ac:"#1c4587",slogan:"Pacific Wonderland"},
+  {abbr:"PA",col:9,row:3,region:"Northeast",name:"Pennsylvania",cap:"Harrisburg",pop:"13.0 million",bird:"Ruffed Grouse",year:1787,bg:"linear-gradient(180deg,#dbe7f3,#fdf3d7)",fg:"#14284b",ac:"#14284b",slogan:"Keystone State"},
+  {abbr:"RI",col:11,row:2,region:"Northeast",name:"Rhode Island",cap:"Providence",pop:"1.1 million",bird:"Rhode Island Red",year:1790,bg:"linear-gradient(180deg,#e7f4fb,#ffffff)",fg:"#1c5d99",ac:"#1c5d99",slogan:"Ocean State"},
+  {abbr:"SC",col:8,row:5,region:"South",name:"South Carolina",cap:"Columbia",pop:"5.4 million",bird:"Carolina Wren",year:1788,bg:"#f4f7f0",fg:"#1f4e5f",ac:"#b58900",slogan:"The Palmetto State"},
+  {abbr:"SD",col:4,row:3,region:"Midwest",name:"South Dakota",cap:"Pierre",pop:"920,000",bird:"Ring-necked Pheasant",year:1889,bg:"linear-gradient(180deg,#dfeffa,#f7ecd9)",fg:"#31558a",ac:"#31558a",slogan:"Great Faces. Great Places."},
+  {abbr:"TN",col:6,row:5,region:"South",name:"Tennessee",cap:"Nashville",pop:"7.1 million",bird:"Northern Mockingbird",year:1796,bg:"#12355b",fg:"#ffffff",ac:"#ffffff",slogan:"The Volunteer State"},
+  {abbr:"TX",col:4,row:7,region:"South",name:"Texas",cap:"Austin",pop:"30.5 million",bird:"Northern Mockingbird",year:1845,bg:"#ffffff",fg:"#1a1a1a",ac:"#1a1a1a",slogan:"The Lone Star State"},
+  {abbr:"UT",col:2,row:4,region:"West",name:"Utah",cap:"Salt Lake City",pop:"3.4 million",bird:"California Gull",year:1896,bg:"linear-gradient(180deg,#fde3b1,#e08e5e)",fg:"#6b2d16",ac:"#6b2d16",slogan:"Life Elevated"},
+  {abbr:"VT",col:10,row:1,region:"Northeast",name:"Vermont",cap:"Montpelier",pop:"647,000",bird:"Hermit Thrush",year:1791,bg:"#2f7d4f",fg:"#ffffff",ac:"#ffffff",slogan:"Green Mountain State"},
+  {abbr:"VA",col:8,row:4,region:"South",name:"Virginia",cap:"Richmond",pop:"8.7 million",bird:"Northern Cardinal",year:1788,bg:"#ffffff",fg:"#22303f",ac:"#8a2b2b",slogan:"Virginia is for Lovers"},
+  {abbr:"WA",col:1,row:2,region:"West",name:"Washington",cap:"Olympia",pop:"7.8 million",bird:"American Goldfinch",year:1889,bg:"linear-gradient(180deg,#e7f4fb,#dfeee4)",fg:"#1a3e6e",ac:"#2e5d43",slogan:"Evergreen State"},
+  {abbr:"WV",col:7,row:4,region:"South",name:"West Virginia",cap:"Charleston",pop:"1.8 million",bird:"Northern Cardinal",year:1863,bg:"linear-gradient(180deg,#fdf6e3,#ffffff)",fg:"#1a3e6e",ac:"#1a3e6e",slogan:"Wild, Wonderful"},
+  {abbr:"WI",col:6,row:2,region:"Midwest",name:"Wisconsin",cap:"Madison",pop:"5.9 million",bird:"American Robin",year:1848,bg:"#f7f3e8",fg:"#b3202c",ac:"#b3202c",slogan:"America's Dairyland"},
+  {abbr:"WY",col:3,row:3,region:"West",name:"Wyoming",cap:"Cheyenne",pop:"584,000",bird:"Western Meadowlark",year:1890,bg:"linear-gradient(180deg,#dbe9f5,#f7ecd9)",fg:"#31558a",ac:"#31558a",slogan:"Forever West"},
+];
+
+// New Canada data — colors/slogans are stylized (in the spirit of each province's real plate), facts are approximate like the US set.
+const CA_PROVINCES = [
+  {abbr:"ON",col:6,row:1,name:"Ontario",cap:"Toronto",pop:"15.6 million",bird:"Common Loon",confYear:1867,bg:"#ffffff",fg:"#003087",ac:"#003087",slogan:"A Place to Grow"},
+  {abbr:"QC",col:8,row:1,name:"Quebec",cap:"Quebec City",pop:"8.9 million",bird:"Snowy Owl",confYear:1867,bg:"linear-gradient(180deg,#eaf2fb,#ffffff)",fg:"#003da5",ac:"#003da5",slogan:"Je me souviens"},
+  {abbr:"NS",col:10,row:1,name:"Nova Scotia",cap:"Halifax",pop:"1.0 million",bird:"Osprey",confYear:1867,bg:"#ffffff",fg:"#00205b",ac:"#00205b",slogan:"Canada's Ocean Playground"},
+  {abbr:"NB",col:9,row:1,name:"New Brunswick",cap:"Fredericton",pop:"840,000",bird:"Black-capped Chickadee",confYear:1867,bg:"#f7faf5",fg:"#1b5e3a",ac:"#1b5e3a",slogan:"Picture Province"},
+  {abbr:"MB",col:4,row:1,name:"Manitoba",cap:"Winnipeg",pop:"1.4 million",bird:"Great Grey Owl",confYear:1870,bg:"linear-gradient(180deg,#fdf3d0,#f3dfa0)",fg:"#5c3a1e",ac:"#5c3a1e",slogan:"Friendly Manitoba"},
+  {abbr:"BC",col:1,row:1,name:"British Columbia",cap:"Victoria",pop:"5.6 million",bird:"Steller's Jay",confYear:1871,bg:"linear-gradient(180deg,#cfe6f7,#eef8ff)",fg:"#00305c",ac:"#00305c",slogan:"Beautiful British Columbia"},
+  {abbr:"PE",col:10,row:0,name:"Prince Edward Island",cap:"Charlottetown",pop:"175,000",bird:"Blue Jay",confYear:1873,bg:"#fdfaf5",fg:"#a31621",ac:"#a31621",slogan:"Birthplace of Confederation"},
+  {abbr:"SK",col:3,row:1,name:"Saskatchewan",cap:"Regina",pop:"1.2 million",bird:"Sharp-tailed Grouse",confYear:1905,bg:"linear-gradient(180deg,#fdf6d8,#eddd9a)",fg:"#2e6b2e",ac:"#2e6b2e",slogan:"Land of Living Skies"},
+  {abbr:"AB",col:2,row:1,name:"Alberta",cap:"Edmonton",pop:"4.7 million",bird:"Great Horned Owl",confYear:1905,bg:"#eef4fb",fg:"#00447c",ac:"#00447c",slogan:"Wild Rose Country"},
+  {abbr:"NL",col:11,row:1,name:"Newfoundland and Labrador",cap:"St. John's",pop:"540,000",bird:"Atlantic Puffin",confYear:1949,bg:"#ffffff",fg:"#00695c",ac:"#00695c",slogan:"Canada's Happy Province"},
+  {abbr:"YT",col:1,row:0,name:"Yukon",cap:"Whitehorse",pop:"45,000",bird:"Common Raven",confYear:1898,bg:"linear-gradient(180deg,#fdf3d0,#ffffff)",fg:"#2b2b2b",ac:"#8a6d1f",slogan:"Larger Than Life"},
+  {abbr:"NT",col:3,row:0,name:"Northwest Territories",cap:"Yellowknife",pop:"45,000",bird:"Gyrfalcon",confYear:1870,bg:"#f2f8f0",fg:"#1e5c33",ac:"#1e5c33",slogan:"Spectacular NWT"},
+  {abbr:"NU",col:6,row:0,name:"Nunavut",cap:"Iqaluit",pop:"40,000",bird:"Rock Ptarmigan",confYear:1999,bg:"linear-gradient(180deg,#eaf2fb,#ffffff)",fg:"#003087",ac:"#003087",slogan:"The Arctic Awaits"},
+];
+
+const STATE_BY_ABBR = Object.fromEntries([...US_STATES, ...CA_PROVINCES].map(s => [s.abbr, s]));
+
+const REGION_COLORS = { West:"#e07a5f", Midwest:"#f2cc8f", South:"#81b29a", Northeast:"#7aa6d6", Canada:"#e8555f" };
+const REGIONS = ["West","Midwest","South","Northeast"];
+
+// pre-seed a few "found" tiles (abbr -> timestamp) purely so both modes look
+// populated/alive in the demo, and so Trip Time / Last Spotted have real data
+// to compute from. Timestamps are staggered on purpose: BC (Canada) is the
+// most *recent* find, so toggling modes visibly changes "last spotted" —
+// while CA (2h ago) stays the earliest find either way, so "trip time" stays
+// put. That's intentional: it demonstrates the mode-scoping rule below.
+const now = Date.now();
+const foundUS = new Map([
+  ["CA", now - 2   * 3600000],
+  ["TX", now - 47  * 60000],
+  ["NY", now - 33  * 60000],
+  ["FL", now - 12  * 60000],
+  ["OH", now - 8   * 60000],
+]);
+const foundCA = new Map([
+  ["ON", now - 25 * 60000],
+  ["BC", now - 3  * 60000],
+]);
+
+const RING_CIRC = 2 * Math.PI * 52;
+let mode = "usa"; // "usa" | "both"
+
+function fmtDuration(ms, short = false) {
+  if (ms < 0) ms = 0;
+  const s = Math.floor(ms / 1000);
+  const h = Math.floor(s / 3600);
+  const m = Math.floor((s % 3600) / 60);
+  const sec = s % 60;
+  if (h > 0) return `${h}h ${m}m`;
+  if (m > 0) return short ? `${m}m` : `${m}m ${sec}s`;
+  return `${sec}s`;
+}
+function fmtAgo(t) { return fmtDuration(Date.now() - t, true) + " ago"; }
+function fmtClock(t) {
+  const d = new Date(t);
+  const sameDay = d.toDateString() === new Date().toDateString();
+  const time = d.toLocaleTimeString([], { hour: "numeric", minute: "2-digit" });
+  return sameDay ? time : d.toLocaleDateString([], { month: "short", day: "numeric" }) + " " + time;
+}
+
+function buildGrid(container, list, foundMap, extraClass) {
+  const isCanada = extraClass === "ca";
+  container.innerHTML = "";
+  list.forEach(s => {
+    const tile = document.createElement("button");
+    tile.className = "tile" + (extraClass ? " " + extraClass : "");
+    tile.textContent = s.abbr;
+    tile.title = s.name || s.abbr;
+    tile.style.gridColumn = s.col + 1;
+    tile.style.gridRow = s.row + 1;
+    if (foundMap.has(s.abbr)) tile.classList.add("found");
+    tile.addEventListener("click", () => openPlateModal(s.abbr, isCanada));
+    container.appendChild(tile);
+  });
+}
+
+// ── Plate detail modal ───────────────────────────────────────────────────
+function plateHTML(s) {
+  return `
+    <div class="plate" style="background:${s.bg}">
+      <div class="plate-state" style="color:${s.ac}">${s.name}</div>
+      <div class="plate-serial" style="color:${s.fg}">${s.abbr} · ${s.year || s.confYear}</div>
+      <div class="plate-slogan" style="color:${s.ac}">${s.slogan}</div>
+    </div>`;
+}
+
+function factsHTML(s, isCanada) {
+  const facts = isCanada
+    ? [["🏛️ Capital", s.cap], ["👥 Population", s.pop], ["🐦 Provincial/Territorial Bird", s.bird], ["🍁 Joined Confederation", s.confYear]]
+    : [["🏛️ Capital", s.cap], ["👥 Population", s.pop], ["🐦 State Bird", s.bird], ["⭐ Statehood", s.year]];
+  return `<div class="facts">${facts.map(([label, val]) =>
+    `<div class="fact"><span class="fact-label">${label}</span><span class="fact-val">${val}</span></div>`
+  ).join("")}</div>`;
+}
+
+function openPlateModal(abbr, isCanada, celebrate = false) {
+  const s = STATE_BY_ABBR[abbr];
+  const foundMap = isCanada ? foundCA : foundUS;
+  const foundAt = foundMap.get(abbr);
+
+  let footer;
+  if (celebrate) {
+    footer = isCanada
+      ? `<div class="found-banner ca">🍁 Spotted! ${s.name} is on the board!</div>`
+      : `<div class="found-banner">🎉 Spotted! ${s.name} is on the board!</div>`;
+  } else if (foundAt) {
+    footer = `
+      <div class="found-banner${isCanada ? " ca" : ""}">✅ Spotted ${fmtClock(foundAt)}</div>
+      <button class="undo-link" id="btnUndo">oops — remove this find</button>`;
+  } else {
+    footer = isCanada
+      ? `<button class="spot-btn ca" id="btnSpot">🍁 I spotted it!</button>`
+      : `<button class="spot-btn" id="btnSpot">📣 I spotted it!</button>`;
+  }
+
+  document.getElementById("plateModalBody").innerHTML = `
+    ${plateHTML(s)}
+    <p class="modal-nick">"${s.slogan}" — ${isCanada ? "Canada" : "the " + s.region}</p>
+    ${factsHTML(s, isCanada)}
+    ${footer}`;
+
+  const spotBtn = document.getElementById("btnSpot");
+  if (spotBtn) spotBtn.addEventListener("click", () => markFound(abbr, isCanada));
+  const undoBtn = document.getElementById("btnUndo");
+  if (undoBtn) undoBtn.addEventListener("click", () => unmarkFound(abbr, isCanada));
+
+  document.getElementById("plateOverlay").classList.remove("hidden");
+}
+
+function closePlateModal() {
+  document.getElementById("plateOverlay").classList.add("hidden");
+}
+
+function markFound(abbr, isCanada) {
+  (isCanada ? foundCA : foundUS).set(abbr, Date.now());
+  render();
+  if (isCanada) { canadaHonk(); mapleLeaves(); }
+  else { honk(); confetti(); }
+  openPlateModal(abbr, isCanada, true);
+}
+
+function unmarkFound(abbr, isCanada) {
+  (isCanada ? foundCA : foundUS).delete(abbr);
+  render();
+  closePlateModal();
+}
+
+document.getElementById("plateModalClose").addEventListener("click", closePlateModal);
+document.getElementById("plateOverlay").addEventListener("click", e => {
+  if (e.target.id === "plateOverlay") closePlateModal();
+});
+
+// ── Sound: USA gets the classic two-tone car horn; Canada gets a hockey-arena
+// goal-horn blast instead — lower, sustained, with a brassy pitch-rise attack
+// and a subtle siren wobble. Both are synthesized (no audio files).
+let audioCtx = null;
+
+function honk() {
+  try {
+    audioCtx = audioCtx || new (window.AudioContext || window.webkitAudioContext)();
+    if (audioCtx.state === "suspended") audioCtx.resume();
+    const t0 = audioCtx.currentTime;
+    burst(t0, 0.16);
+    burst(t0 + 0.24, 0.34);
+  } catch (e) { /* audio unavailable — play on silently */ }
+}
+
+function burst(start, dur) {
+  const gain = audioCtx.createGain();
+  gain.gain.setValueAtTime(0, start);
+  gain.gain.linearRampToValueAtTime(0.25, start + 0.015);
+  gain.gain.setValueAtTime(0.25, start + dur - 0.03);
+  gain.gain.linearRampToValueAtTime(0, start + dur);
+
+  const filter = audioCtx.createBiquadFilter();
+  filter.type = "lowpass";
+  filter.frequency.value = 1800;
+  gain.connect(filter).connect(audioCtx.destination);
+
+  [370, 466].forEach(freq => {
+    const osc = audioCtx.createOscillator();
+    osc.type = "sawtooth";
+    osc.frequency.value = freq;
+    osc.connect(gain);
+    osc.start(start);
+    osc.stop(start + dur);
+  });
+}
+
+// Real recorded goal-horn clip (Pixabay, free-use license) instead of synthesis —
+// no amount of oscillator trickery beats an actual recording. The source file is
+// 15s with several bursts back to back; the clean single burst is the first ~4s,
+// so playback is hard-stopped at 4s rather than trimming/re-encoding the file.
+// Path is relative to this wireframe file, which lives in wireframes/ — the
+// asset lives one level up, in sounds/.
+let canadaAudio = null;
+
+function canadaHonk() {
+  try {
+    canadaAudio = canadaAudio || new Audio("../sounds/canada-horn.mp3");
+    clearTimeout(canadaAudio._stopTimer);
+    canadaAudio.currentTime = 0;
+    canadaAudio.play().catch(() => { /* blocked without a user gesture — ignore */ });
+    canadaAudio._stopTimer = setTimeout(() => {
+      canadaAudio.pause();
+      canadaAudio.currentTime = 0;
+    }, 4000);
+  } catch (e) { /* audio unavailable — play on silently */ }
+}
+
+// ── Celebration effects: confetti for USA, falling maple leaves for Canada ──
+function confetti() {
+  const layer = document.getElementById("confettiLayer");
+  const colors = ["#fbbf24", "#f97316", "#34d399", "#7aa6d6", "#e07a5f", "#f2cc8f", "#ffffff"];
+  for (let i = 0; i < 90; i++) {
+    const bit = document.createElement("div");
+    bit.className = "confetti-bit";
+    bit.style.left = Math.random() * 100 + "vw";
+    bit.style.background = colors[Math.floor(Math.random() * colors.length)];
+    bit.style.animationDuration = 1.4 + Math.random() * 1.8 + "s";
+    bit.style.animationDelay = Math.random() * 0.5 + "s";
+    bit.style.transform = `rotate(${Math.random() * 360}deg)`;
+    layer.appendChild(bit);
+    setTimeout(() => bit.remove(), 4200);
+  }
+}
+
+function mapleLeaves() {
+  const layer = document.getElementById("confettiLayer");
+  for (let i = 0; i < 36; i++) {
+    const leaf = document.createElement("div");
+    leaf.className = "leaf-bit";
+    leaf.textContent = "🍁";
+    leaf.style.left = Math.random() * 100 + "vw";
+    leaf.style.fontSize = (16 + Math.random() * 14) + "px";
+    leaf.style.animationDuration = 2.4 + Math.random() * 2.2 + "s";
+    leaf.style.animationDelay = Math.random() * 0.5 + "s";
+    layer.appendChild(leaf);
+    setTimeout(() => leaf.remove(), 5200);
+  }
+}
+
+function render() {
+  const showCanada = mode === "both";
+
+  document.getElementById("blockCanada").style.display = showCanada ? "" : "none";
+  document.getElementById("usLabel").style.display = showCanada ? "" : "none";
+  document.getElementById("legendCa").style.display = showCanada ? "" : "none";
+  document.getElementById("foundCAStat").style.display = showCanada ? "" : "none";
+  document.getElementById("mapNote").innerHTML = showCanada
+    ? `Showing <strong>USA + Canada</strong> — 50 states plus 13 provinces &amp; territories.`
+    : `Showing <strong>USA only</strong> — 50 states. Switch to "USA + Canada" in the 🍁 region picker to see the map grow.`;
+
+  buildGrid(document.getElementById("mapUS"), US_STATES, foundUS);
+  if (showCanada) buildGrid(document.getElementById("mapCanada"), CA_PROVINCES, foundCA, "ca");
+
+  // % complete always reflects the active mode's denominator; the ring itself
+  // (style/animation) is identical regardless of mode.
+  const total = showCanada ? 63 : 50;
+  const found = foundUS.size + (showCanada ? foundCA.size : 0);
+  const pct = Math.round((found / total) * 100);
+  document.getElementById("pctBig").textContent = pct + "%";
+  document.getElementById("ringFill").style.strokeDasharray = RING_CIRC;
+  document.getElementById("ringFill").style.strokeDashoffset = RING_CIRC * (1 - found / total);
+
+  document.getElementById("foundUSCount").innerHTML = `${foundUS.size}<small>/50</small>`;
+  document.getElementById("foundCACount").innerHTML = `${foundCA.size}<small>/13</small>`;
+
+  // Trip time / last spotted are scoped to whichever region(s) are active,
+  // same rule as the % complete calc — in "both" mode they consider US + CA
+  // finds together, in "usa" mode Canada finds are excluded entirely.
+  const active = showCanada
+    ? [...foundUS].map(([abbr, t]) => ({ abbr, t, ca: false })).concat([...foundCA].map(([abbr, t]) => ({ abbr, t, ca: true })))
+    : [...foundUS].map(([abbr, t]) => ({ abbr, t, ca: false }));
+  active.sort((a, b) => a.t - b.t);
+
+  document.getElementById("tripTime").textContent = active.length
+    ? fmtDuration(Date.now() - active[0].t, true)
+    : "—";
+
+  if (active.length) {
+    const last = active[active.length - 1];
+    const flag = showCanada ? (last.ca ? "🇨🇦 " : "🇺🇸 ") : "";
+    document.getElementById("lastFind").textContent = `${flag}${last.abbr} · ${fmtAgo(last.t)}`;
+  } else {
+    document.getElementById("lastFind").textContent = "—";
+  }
+
+  renderHistory(active, showCanada);
+  renderRegions(showCanada);
+
+  document.querySelectorAll(".region-option").forEach(btn => {
+    btn.classList.toggle("active", btn.dataset.mode === mode);
+  });
+}
+
+function renderHistory(active, showCanada) {
+  const list = document.getElementById("history");
+  list.innerHTML = "";
+  document.getElementById("historyEmpty").style.display = active.length ? "none" : "";
+
+  active.slice().reverse().forEach((f, idx) => {
+    const num = active.length - idx;
+    const prev = active[num - 2];
+    const li = document.createElement("li");
+    li.innerHTML = `
+      <span class="h-num">#${num}</span>
+      ${showCanada ? `<span class="h-dot${f.ca ? " ca" : ""}"></span>` : ""}
+      <span class="h-state">${STATE_BY_ABBR[f.abbr].name}</span>
+      ${prev ? `<span class="h-gap${f.ca ? " ca" : ""}">+${fmtDuration(f.t - prev.t, true)}</span>` : `<span class="h-gap">first!</span>`}
+      <span class="h-when">${fmtClock(f.t)}</span>`;
+    list.appendChild(li);
+  });
+}
+
+function renderRegions(showCanada) {
+  const wrap = document.getElementById("regions");
+  wrap.innerHTML = "";
+  REGIONS.forEach(r => {
+    const total = US_STATES.filter(s => s.region === r).length;
+    const found = US_STATES.filter(s => s.region === r && foundUS.has(s.abbr)).length;
+    const row = document.createElement("div");
+    row.className = "region-row";
+    row.innerHTML = `
+      <span class="region-name">${r}</span>
+      <div class="region-bar"><div class="region-fill" style="width:${(found/total)*100}%; background:${REGION_COLORS[r]}"></div></div>
+      <span class="region-count">${found} / ${total}</span>`;
+    wrap.appendChild(row);
+  });
+
+  if (showCanada) {
+    const found = foundCA.size;
+    const row = document.createElement("div");
+    row.className = "region-row is-new";
+    row.innerHTML = `
+      <span class="region-name">🇨🇦 Canada <span class="new-badge">NEW</span></span>
+      <div class="region-bar"><div class="region-fill" style="width:${(found/13)*100}%; background:${REGION_COLORS.Canada}"></div></div>
+      <span class="region-count">${found} / 13</span>`;
+    wrap.appendChild(row);
+  }
+}
+
+// ── Region picker popover wiring ──────────────────────────────────────────
+const overlay = document.getElementById("overlay");
+document.getElementById("btnRegion").addEventListener("click", () => overlay.classList.remove("hidden"));
+document.getElementById("btnDone").addEventListener("click", () => overlay.classList.add("hidden"));
+overlay.addEventListener("click", e => { if (e.target === overlay) overlay.classList.add("hidden"); });
+
+document.querySelectorAll(".region-option").forEach(btn => {
+  btn.addEventListener("click", () => {
+    mode = btn.dataset.mode;
+    render();
+  });
+});
+
+render();
+setInterval(render, 30000); // keep "ago" labels fresh, same as the real app
+</script>
+</body>
+</html>

@@ -2,7 +2,7 @@
 const STORE_KEY = "plateChase.v1";
 const RING_CIRC = 2 * Math.PI * 52; // matches r=52 in the progress ring SVG
 
-// game.finds = { ABBR: epochMillis }
+// game.finds = { ABBR: epochMillis } (USA), game.findsCA = { ABBR: epochMillis } (Canada)
 let game = load();
 
 function load() {
@@ -10,10 +10,10 @@ function load() {
     const raw = localStorage.getItem(STORE_KEY);
     if (raw) {
       const g = JSON.parse(raw);
-      if (g && typeof g.finds === "object") return { sound: true, ...g };
+      if (g && typeof g.finds === "object") return { sound: true, findsCA: {}, mode: "usa", ...g };
     }
   } catch (e) { /* corrupted save — start fresh */ }
-  return { finds: {}, sound: true };
+  return { finds: {}, findsCA: {}, mode: "usa", sound: true };
 }
 
 function save() {
@@ -23,10 +23,21 @@ function save() {
 // ── Helpers ─────────────────────────────────────────────────────────────────
 const $ = id => document.getElementById(id);
 
-function findsSorted() {
-  return Object.entries(game.finds)
+function findsSorted(map) {
+  return Object.entries(map)
     .map(([abbr, t]) => ({ abbr, t }))
     .sort((a, b) => a.t - b.t);
+}
+
+// Combined, chronologically-sorted find list for whichever region(s) are
+// active in the current mode — this is what "trip time", "last spotted", the
+// mini-stat cards, and the trip log all read from, so they stay consistent
+// with the % complete calc's mode-scoping.
+function activeFinds() {
+  const us = findsSorted(game.finds).map(f => ({ ...f, ca: false }));
+  if (game.mode !== "both") return us;
+  const ca = findsSorted(game.findsCA).map(f => ({ ...f, ca: true }));
+  return us.concat(ca).sort((a, b) => a.t - b.t);
 }
 
 function fmtDuration(ms, short = false) {
@@ -54,7 +65,8 @@ function fmtClock(t) {
   return sameDay ? time : d.toLocaleDateString([], { month: "short", day: "numeric" }) + " " + time;
 }
 
-// ── Sound: two-tone car horn via Web Audio ──────────────────────────────────
+// ── Sound: two-tone car horn for USA (synthesized); a real goal-horn clip for
+// Canada — no amount of oscillator trickery beat an actual recording here. ──
 let audioCtx = null;
 
 function honk() {
@@ -93,7 +105,26 @@ function burst(start, dur) {
   });
 }
 
-// ── Confetti ────────────────────────────────────────────────────────────────
+// Source file (Pixabay, free-use license) is 15s with several bursts back to
+// back; the clean single burst is the first ~4s, so playback is hard-stopped
+// at 4s rather than trimming/re-encoding the file itself.
+let canadaAudio = null;
+
+function canadaHonk() {
+  if (!game.sound) return;
+  try {
+    canadaAudio = canadaAudio || new Audio("sounds/canada-horn.mp3");
+    clearTimeout(canadaAudio._stopTimer);
+    canadaAudio.currentTime = 0;
+    canadaAudio.play().catch(() => { /* blocked without a user gesture — ignore */ });
+    canadaAudio._stopTimer = setTimeout(() => {
+      canadaAudio.pause();
+      canadaAudio.currentTime = 0;
+    }, 4000);
+  } catch (e) { /* audio unavailable — play on silently */ }
+}
+
+// ── Celebration effects: confetti for USA, falling maple leaves for Canada ──
 function confetti() {
   const layer = $("confettiLayer");
   const colors = ["#fbbf24", "#f97316", "#34d399", "#7aa6d6", "#e07a5f", "#f2cc8f", "#ffffff"];
@@ -110,20 +141,47 @@ function confetti() {
   }
 }
 
+function mapleLeaves() {
+  const layer = $("confettiLayer");
+  for (let i = 0; i < 36; i++) {
+    const leaf = document.createElement("div");
+    leaf.className = "leaf-bit";
+    leaf.textContent = "🍁";
+    leaf.style.left = Math.random() * 100 + "vw";
+    leaf.style.fontSize = (16 + Math.random() * 14) + "px";
+    leaf.style.animationDuration = 2.4 + Math.random() * 2.2 + "s";
+    leaf.style.animationDelay = Math.random() * 0.5 + "s";
+    layer.appendChild(leaf);
+    setTimeout(() => leaf.remove(), 5200);
+  }
+}
+
 // ── Map ─────────────────────────────────────────────────────────────────────
 function buildMap() {
-  const map = $("map");
-  map.innerHTML = "";
-  STATES.forEach(s => {
+  const showCanada = game.mode === "both";
+
+  $("blockCanada").style.display = showCanada ? "" : "none";
+  $("usLabel").style.display = showCanada ? "" : "none";
+  $("legendCa").style.display = showCanada ? "" : "none";
+  $("foundCAStat").style.display = showCanada ? "" : "none";
+
+  buildGrid($("map"), STATES, game.finds, false);
+  if (showCanada) buildGrid($("mapCanada"), CA_PROVINCES, game.findsCA, true);
+}
+
+function buildGrid(container, list, foundMap, isCanada) {
+  container.innerHTML = "";
+  list.forEach(s => {
     const tile = document.createElement("button");
-    tile.className = "tile";
+    tile.className = "tile" + (isCanada ? " ca" : "");
     tile.id = "tile-" + s.abbr;
     tile.textContent = s.abbr;
     tile.title = s.name;
     tile.style.gridColumn = s.col + 1;
     tile.style.gridRow = s.row + 1;
-    tile.addEventListener("click", () => openModal(s.abbr));
-    map.appendChild(tile);
+    if (s.abbr in foundMap) tile.classList.add("found");
+    tile.addEventListener("click", () => openModal(s.abbr, isCanada));
+    container.appendChild(tile);
   });
 }
 
@@ -138,34 +196,51 @@ function renderAll() {
 
 function renderMap() {
   STATES.forEach(s => {
-    $("tile-" + s.abbr).classList.toggle("found", s.abbr in game.finds);
+    const tile = $("tile-" + s.abbr);
+    if (tile) tile.classList.toggle("found", s.abbr in game.finds);
   });
+  if (game.mode === "both") {
+    CA_PROVINCES.forEach(s => {
+      const tile = $("tile-" + s.abbr);
+      if (tile) tile.classList.toggle("found", s.abbr in game.findsCA);
+    });
+  }
 }
 
 function renderHero() {
-  const finds = findsSorted();
-  const n = finds.length;
-  const pct = Math.round((n / 50) * 100);
+  const showCanada = game.mode === "both";
+  const total = showCanada ? 63 : 50;
+  const usCount = Object.keys(game.finds).length;
+  const caCount = Object.keys(game.findsCA).length;
+  const found = usCount + (showCanada ? caCount : 0);
+  const pct = Math.round((found / total) * 100);
 
   $("pctBig").textContent = pct + "%";
   $("ringFill").style.strokeDasharray = RING_CIRC;
-  $("ringFill").style.strokeDashoffset = RING_CIRC * (1 - n / 50);
-  $("foundCount").innerHTML = `${n}<small>/50</small>`;
+  $("ringFill").style.strokeDashoffset = RING_CIRC * (1 - found / total);
 
-  $("tripTime").textContent = n ? fmtDuration(Date.now() - finds[0].t, true) : "—";
-  if (n) {
-    const last = finds[n - 1];
-    $("lastFind").textContent = STATE_BY_ABBR[last.abbr].abbr + " · " + fmtAgo(last.t);
+  $("foundUSCount").innerHTML = `${usCount}<small>/50</small>`;
+  $("foundCACount").innerHTML = `${caCount}<small>/13</small>`;
+
+  // Trip time / last spotted are scoped to whichever region(s) are active,
+  // same rule as the % complete calc — in "both" mode they consider USA + CA
+  // finds together, in "usa" mode Canada finds are excluded entirely.
+  const active = activeFinds();
+  $("tripTime").textContent = active.length ? fmtDuration(Date.now() - active[0].t, true) : "—";
+  if (active.length) {
+    const last = active[active.length - 1];
+    const flag = showCanada ? (last.ca ? "🇨🇦 " : "🇺🇸 ") : "";
+    $("lastFind").textContent = `${flag}${last.abbr} · ${fmtAgo(last.t)}`;
   } else {
     $("lastFind").textContent = "—";
   }
 }
 
 function renderStats() {
-  const finds = findsSorted();
+  const active = activeFinds();
   const gaps = [];
-  for (let i = 1; i < finds.length; i++) {
-    gaps.push({ ms: finds[i].t - finds[i - 1].t, from: finds[i - 1].abbr, to: finds[i].abbr });
+  for (let i = 1; i < active.length; i++) {
+    gaps.push({ ms: active[i].t - active[i - 1].t, from: active[i - 1].abbr, to: active[i].abbr });
   }
 
   if (gaps.length) {
@@ -183,13 +258,13 @@ function renderStats() {
 
   // best day
   const byDay = {};
-  finds.forEach(f => {
+  active.forEach(f => {
     const day = new Date(f.t).toDateString();
     byDay[day] = (byDay[day] || 0) + 1;
   });
   const best = Object.entries(byDay).sort((a, b) => b[1] - a[1])[0];
   $("statBestDay").textContent = best
-    ? `${best[1]} state${best[1] > 1 ? "s" : ""} · ${new Date(best[0]).toLocaleDateString([], { month: "short", day: "numeric" })}`
+    ? `${best[1]} plate${best[1] > 1 ? "s" : ""} · ${new Date(best[0]).toLocaleDateString([], { month: "short", day: "numeric" })}`
     : "—";
 }
 
@@ -207,79 +282,96 @@ function renderRegions() {
       <span class="region-count">${found} / ${total}</span>`;
     wrap.appendChild(row);
   });
+
+  if (game.mode === "both") {
+    const found = Object.keys(game.findsCA).length;
+    const row = document.createElement("div");
+    row.className = "region-row";
+    row.innerHTML = `
+      <span class="region-name">🇨🇦 Canada</span>
+      <div class="region-bar"><div class="region-fill" style="width:${(found / 13) * 100}%; background:${REGION_COLORS.Canada}"></div></div>
+      <span class="region-count">${found} / 13</span>`;
+    wrap.appendChild(row);
+  }
 }
 
 function renderHistory() {
-  const finds = findsSorted();
+  const active = activeFinds();
+  const showCanada = game.mode === "both";
   const list = $("history");
   list.innerHTML = "";
-  $("historyEmpty").style.display = finds.length ? "none" : "";
+  $("historyEmpty").style.display = active.length ? "none" : "";
 
-  finds.slice().reverse().forEach((f, idx) => {
-    const i = finds.length - idx; // find number (1-based, chronological)
-    const prev = finds[i - 2];
+  active.slice().reverse().forEach((f, idx) => {
+    const num = active.length - idx; // find number (1-based, chronological)
+    const prev = active[num - 2];
     const li = document.createElement("li");
     li.innerHTML = `
-      <span class="h-num">#${i}</span>
-      <span class="h-state">${STATE_BY_ABBR[f.abbr].name}</span>
-      ${prev ? `<span class="h-gap">+${fmtDuration(f.t - prev.t, true)}</span>` : `<span class="h-gap">first!</span>`}
+      <span class="h-num">#${num}</span>
+      ${showCanada ? `<span class="h-dot${f.ca ? " ca" : ""}"></span>` : ""}
+      <span class="h-state">${PLACE_BY_ABBR[f.abbr].name}</span>
+      ${prev ? `<span class="h-gap${f.ca ? " ca" : ""}">+${fmtDuration(f.t - prev.t, true)}</span>` : `<span class="h-gap">first!</span>`}
       <span class="h-when">${fmtClock(f.t)}</span>`;
     li.style.cursor = "pointer";
-    li.addEventListener("click", () => openModal(f.abbr));
+    li.addEventListener("click", () => openModal(f.abbr, f.ca));
     list.appendChild(li);
   });
 }
 
 // ── Modal ───────────────────────────────────────────────────────────────────
 let modalAbbr = null;
+let modalIsCanada = false;
 
 function plateHTML(s) {
   return `
     <div class="plate" style="background:${s.bg}">
       <div class="plate-state" style="color:${s.ac}">${s.name}</div>
-      <div class="plate-serial" style="color:${s.fg}">${s.abbr} · ${s.year}</div>
+      <div class="plate-serial" style="color:${s.fg}">${s.abbr} · ${s.year || s.confYear}</div>
       <div class="plate-slogan" style="color:${s.ac}">${s.slogan}</div>
     </div>`;
 }
 
-function factsHTML(s) {
-  const facts = [
-    ["🏛️ Capital", s.cap],
-    ["👥 Population", s.pop],
-    ["🐦 State Bird", s.bird],
-    ["⭐ Statehood", `${s.year} (state #${s.order})`],
-  ];
+function factsHTML(s, isCanada) {
+  const facts = isCanada
+    ? [["🏛️ Capital", s.cap], ["👥 Population", s.pop], ["🐦 Provincial/Territorial Bird", s.bird], ["🍁 Joined Confederation", s.confYear]]
+    : [["🏛️ Capital", s.cap], ["👥 Population", s.pop], ["🐦 State Bird", s.bird], ["⭐ Statehood", `${s.year} (state #${s.order})`]];
   return `<div class="facts">${facts.map(([label, val]) =>
     `<div class="fact"><span class="fact-label">${label}</span><span class="fact-val">${val}</span></div>`
   ).join("")}</div>`;
 }
 
-function openModal(abbr, celebrate = false) {
+function openModal(abbr, isCanada, celebrate = false) {
   modalAbbr = abbr;
-  const s = STATE_BY_ABBR[abbr];
-  const foundAt = game.finds[abbr];
+  modalIsCanada = isCanada;
+  const s = isCanada ? CA_BY_ABBR[abbr] : STATE_BY_ABBR[abbr];
+  const foundMap = isCanada ? game.findsCA : game.finds;
+  const foundAt = foundMap[abbr];
 
   let footer;
   if (celebrate) {
-    footer = `<div class="found-banner">🎉 Spotted! ${s.name} is on the board!</div>`;
+    footer = isCanada
+      ? `<div class="found-banner ca">🍁 Spotted! ${s.name} is on the board!</div>`
+      : `<div class="found-banner">🎉 Spotted! ${s.name} is on the board!</div>`;
   } else if (foundAt) {
     footer = `
-      <div class="found-banner">✅ Spotted ${fmtClock(foundAt)}</div>
+      <div class="found-banner${isCanada ? " ca" : ""}">✅ Spotted ${fmtClock(foundAt)}</div>
       <button class="undo-link" id="btnUndo">oops — remove this find</button>`;
   } else {
-    footer = `<button class="spot-btn" id="btnSpot">📣 I spotted it!</button>`;
+    footer = isCanada
+      ? `<button class="spot-btn ca" id="btnSpot">🍁 I spotted it!</button>`
+      : `<button class="spot-btn" id="btnSpot">📣 I spotted it!</button>`;
   }
 
   $("modalBody").innerHTML = `
     ${plateHTML(s)}
-    <p class="modal-nick">"${s.slogan}" — the ${s.region}</p>
-    ${factsHTML(s)}
+    <p class="modal-nick">"${s.slogan}" — ${isCanada ? "Canada" : "the " + s.region}</p>
+    ${factsHTML(s, isCanada)}
     ${footer}`;
 
   const spotBtn = $("btnSpot");
-  if (spotBtn) spotBtn.addEventListener("click", () => markFound(abbr));
+  if (spotBtn) spotBtn.addEventListener("click", () => markFound(abbr, isCanada));
   const undoBtn = $("btnUndo");
-  if (undoBtn) undoBtn.addEventListener("click", () => unmarkFound(abbr));
+  if (undoBtn) undoBtn.addEventListener("click", () => unmarkFound(abbr, isCanada));
 
   $("overlay").classList.remove("hidden");
 }
@@ -289,26 +381,34 @@ function closeModal() {
   modalAbbr = null;
 }
 
-function markFound(abbr) {
-  game.finds[abbr] = Date.now();
+function markFound(abbr, isCanada) {
+  const foundMap = isCanada ? game.findsCA : game.finds;
+  foundMap[abbr] = Date.now();
   save();
   renderAll();
-  honk();
-  confetti();
+  if (isCanada) { canadaHonk(); mapleLeaves(); }
+  else { honk(); confetti(); }
   const tile = $("tile-" + abbr);
-  tile.classList.add("just-found");
-  setTimeout(() => tile.classList.remove("just-found"), 700);
-  openModal(abbr, true);
-  if (Object.keys(game.finds).length === 50) {
+  if (tile) {
+    tile.classList.add("just-found");
+    setTimeout(() => tile.classList.remove("just-found"), 700);
+  }
+  openModal(abbr, isCanada, true);
+
+  const total = game.mode === "both" ? 63 : 50;
+  const found = Object.keys(game.finds).length + (game.mode === "both" ? Object.keys(game.findsCA).length : 0);
+  if (found === total) {
     setTimeout(() => {
       confetti(); confetti();
-      alert("🏆 ALL 50 STATES! You are a Plate Chase legend!");
+      if (game.mode === "both") mapleLeaves();
+      alert(`🏆 ALL ${total} SPOTTED! You are a Plate Chase legend!`);
     }, 800);
   }
 }
 
-function unmarkFound(abbr) {
-  delete game.finds[abbr];
+function unmarkFound(abbr, isCanada) {
+  const foundMap = isCanada ? game.findsCA : game.finds;
+  delete foundMap[abbr];
   save();
   renderAll();
   closeModal();
@@ -328,9 +428,10 @@ $("btnSound").addEventListener("click", () => {
 });
 
 $("btnReset").addEventListener("click", () => {
-  const n = Object.keys(game.finds).length;
-  if (n === 0 || confirm(`Start a fresh trip? This clears all ${n} spotted state${n === 1 ? "" : "s"}.`)) {
+  const n = Object.keys(game.finds).length + Object.keys(game.findsCA).length;
+  if (n === 0 || confirm(`Start a fresh trip? This clears all ${n} spotted plate${n === 1 ? "" : "s"} (USA and Canada).`)) {
     game.finds = {};
+    game.findsCA = {};
     save();
     renderAll();
   }
@@ -340,8 +441,43 @@ $("modalClose").addEventListener("click", closeModal);
 $("overlay").addEventListener("click", e => {
   if (e.target === $("overlay")) closeModal();
 });
+
+// ── Region picker ───────────────────────────────────────────────────────────
+function renderRegionPicker() {
+  document.querySelectorAll(".region-option").forEach(btn => {
+    btn.classList.toggle("active", btn.dataset.mode === game.mode);
+  });
+}
+
+function openRegionPicker() {
+  renderRegionPicker();
+  $("regionOverlay").classList.remove("hidden");
+}
+
+function closeRegionPicker() {
+  $("regionOverlay").classList.add("hidden");
+}
+
+$("btnRegion").addEventListener("click", openRegionPicker);
+$("regionModalClose").addEventListener("click", closeRegionPicker);
+$("btnRegionDone").addEventListener("click", closeRegionPicker);
+$("regionOverlay").addEventListener("click", e => {
+  if (e.target === $("regionOverlay")) closeRegionPicker();
+});
+
+document.querySelectorAll(".region-option").forEach(btn => {
+  btn.addEventListener("click", () => {
+    if (game.mode === btn.dataset.mode) return;
+    game.mode = btn.dataset.mode;
+    save();
+    buildMap();
+    renderAll();
+    renderRegionPicker();
+  });
+});
+
 document.addEventListener("keydown", e => {
-  if (e.key === "Escape") closeModal();
+  if (e.key === "Escape") { closeModal(); closeRegionPicker(); }
 });
 
 // ── Init ────────────────────────────────────────────────────────────────────
